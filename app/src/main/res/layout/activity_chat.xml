@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.example.remembergroup.messenger2.ChatActivity">
+
+    <TextView
+        android:id="@+id/txt"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="TextView"
+        android:textAlignment="center"
+        android:height="20dp"/>
+
+    <ListView
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:id="@+id/lvChat"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="15"
+        android:divider="@drawable/visible_stroke">
+    </ListView>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:layout_weight="2">
+
+        <EditText
+            android:id="@+id/txtMessage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginRight="5dp"
+            android:layout_weight="9"
+            android:background="@drawable/roundrect_editext"
+            android:inputType="textMultiLine"
+            android:padding="10dp"
+            android:paddingRight="10dp"
+            tools:ignore="NestedWeights,RtlHardcoded,RtlSymmetry" />
+
+        <ImageButton
+            android:id="@+id/btnSend"
+            android:layout_marginRight="5dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/send"
+            android:layout_gravity="center"
+            tools:ignore="ContentDescription,RtlHardcoded" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1.5"
+        android:padding="5dp"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/btnImage"
+            android:layout_width="32dp"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="10dp"
+            android:background="@color/transparent"
+            android:scaleType="fitXY"
+            android:src="@drawable/image_attach"
+            tools:ignore="ContentDescription,RtlHardcoded"
+            />
+
+        <ImageButton
+            android:id="@+id/btnCamera"
+            android:layout_width="32dp"
+            android:layout_height="match_parent"
+            android:src="@drawable/camera"
+            android:scaleType="fitXY"
+            android:layout_marginLeft="10dp"
+            tools:ignore="ContentDescription,RtlHardcoded"
+            android:background="@color/transparent"/>
+        <ImageButton
+            android:id="@+id/btnEmotion"
+            android:layout_width="32dp"
+            android:layout_marginLeft="10dp"
+            android:layout_height="match_parent"
+            android:src="@drawable/emotion"
+            android:scaleType="fitXY"
+            tools:ignore="ContentDescription,RtlHardcoded"
+            android:background="@color/transparent"/>
+    </LinearLayout>
+</LinearLayout>

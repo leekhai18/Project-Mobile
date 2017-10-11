@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:baselineAligned="false">
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <de.hdodenhof.circleimageview.CircleImageView
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/imgImage"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginBottom="8dp"
+                android:src="@drawable/person"
+                app:civ_border_color="#ffffff"
+                tools:layout_editor_absoluteX="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                tools:ignore="MissingConstraints" />
+            <ImageView
+                android:id="@+id/imgOnline"
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:src="@drawable/online"
+                android:layout_marginRight="5dp"
+                app:layout_constraintRight_toRightOf="@+id/imgImage"
+                tools:ignore="ContentDescription,MissingConstraints,RtlHardcoded"
+                app:layout_constraintBottom_toBottomOf="@+id/imgImage"
+                android:layout_marginBottom="1dp" />
+        </android.support.constraint.ConstraintLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="10"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_marginLeft="10dp"
+                android:text="fdfdfdfdfdfdfgdsdsdsdsdsdsdsdsfgfgfgfgdfdf"
+                android:id="@+id/txtName"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:maxLines="1"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                tools:ignore="HardcodedText,NestedWeights,RtlHardcoded" />
+
+            <TextView
+                android:id="@+id/txtText"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginLeft="10dp"
+                android:layout_weight="1.5"
+                android:text="fdsfdfff"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textSize="14sp"
+                android:textStyle="italic"
+
+                tools:ignore="HardcodedText,NestedWeights,RtlHardcoded" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:layout_weight="6">
+            <TextView
+                android:layout_marginBottom="10dp"
+                android:id="@+id/txtTime"
+                android:layout_width="0dp"
+                android:text="11:30"
+                android:gravity="center"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                tools:ignore="HardcodedText,NestedWeights" />
+            <Button
+                android:layout_marginBottom="10dp"
+                android:id="@+id/btnMenu"
+                android:text="@string/vertical_ellipsis"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@color/transparent"
+                />
+        </LinearLayout>
+</LinearLayout>

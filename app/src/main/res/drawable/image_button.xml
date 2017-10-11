@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:height="@dimen/imageSizeH"
+        >
+        <bitmap android:src="@drawable/person1"
+            android:gravity="center" ></bitmap>
+    </item>
+    <item
+        android:gravity="bottom"
+        android:top="10dp"
+
+        android:start="10dp"
+        android:end="0dp">
+        <shape
+            android:shape="rectangle">
+            <solid
+                android:color="@color/white">
+            </solid>
+            <stroke
+                android:color="@color/transparent">
+            </stroke>
+            <size
+                android:height="10dp"
+                android:width="10dp"></size>
+
+        </shape>
+    </item>
+
+</layer-list>
