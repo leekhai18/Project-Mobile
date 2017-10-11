@@ -29,7 +29,7 @@ import java.util.List;
  * Created by chauvansang on 9/21/2017.
  */
 
-public class FriendAdapter extends ArrayAdapter<Friend>  {
+public class ConversationAdapter extends ArrayAdapter<Friend>  {
     @NonNull
     private Activity context;
     @LayoutRes
@@ -38,7 +38,7 @@ public class FriendAdapter extends ArrayAdapter<Friend>  {
     private List<Friend> objects;
 
     private List<Friend> filterData;
-    public FriendAdapter(@NonNull Activity context, @LayoutRes int resource, @NonNull List<Friend> objects) {
+    public ConversationAdapter(@NonNull Activity context, @LayoutRes int resource, @NonNull List<Friend> objects) {
         super(context, resource, objects);
         this.filterData=objects;
         this.context=context;
@@ -56,6 +56,8 @@ public class FriendAdapter extends ArrayAdapter<Friend>  {
 
         @SuppressLint("ViewHolder") View row=inflater.inflate(resource,null);
         TextView txtName=row.findViewById(R.id.txtName);
+        TextView txtText=row.findViewById(R.id.txtText);
+        TextView txtTime=row.findViewById(R.id.txtTime);
         ImageView imgOnline=row.findViewById(R.id.imgOnline);
 
         //load id to controls
@@ -66,6 +68,10 @@ public class FriendAdapter extends ArrayAdapter<Friend>  {
 
         //set values to each controls
         txtName.setText(friend.getName());
+        txtText.setText(friend.getTextLast());
+
+        SimpleDateFormat format=new SimpleDateFormat("MMM dd, yyyy");
+        txtTime.setText(format.format(friend.getDateTime()));
 
         if(friend.getAvatar()!=null)
             imgImage.setImageBitmap(friend.getAvatar());
@@ -74,7 +80,30 @@ public class FriendAdapter extends ArrayAdapter<Friend>  {
         else
             imgOnline.setVisibility(View.INVISIBLE);
 
+        //add events
+        btnMenu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                handleMenuClick(view);
+            }
+        });
         return row;
+    }
+
+    private void addEvents(View view) {
+        view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                handleMenuClick(view);
+            }
+        });
+    }
+
+    private void handleMenuClick(View view) {
+        PopupMenu popupMenu=new PopupMenu(this.context,view);
+        MenuInflater inflater=popupMenu.getMenuInflater();
+        inflater.inflate(R.menu.popup_menu,popupMenu.getMenu());
+        popupMenu.show();
     }
 
 
@@ -127,8 +156,11 @@ public class FriendAdapter extends ArrayAdapter<Friend>  {
     private static class ViewHolder
     {
         private TextView txtName;
+        private TextView txtText;
+        private TextView txtTime;
         private ImageView imgOnline;
         private ImageView imgImage;
+        private Button btnMenu;
 
         public ViewHolder() {
         }
@@ -136,8 +168,11 @@ public class FriendAdapter extends ArrayAdapter<Friend>  {
         public ViewHolder(View row)
         {
             txtName=row.findViewById(R.id.txtName);
+            txtText=row.findViewById(R.id.txtText);
+            txtTime=row.findViewById(R.id.txtTime);
             imgOnline=row.findViewById(R.id.imgOnline);
             imgImage=row.findViewById(R.id.imgImage);
+            btnMenu=row.findViewById(R.id.btnMenu);
         }
     }
 }

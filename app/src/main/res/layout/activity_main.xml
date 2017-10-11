@@ -7,7 +7,7 @@
     android:background="@color/khaibackgroud"
     android:orientation="vertical"
     android:weightSum="1"
-    tools:context="com.example.remembergroup.messenger2.MainActivity">
+    tools:context="com.example.remembergroup.chat_app.MainActivity">
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/imageView"

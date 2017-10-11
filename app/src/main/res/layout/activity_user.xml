@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.example.remembergroup.messenger2.UserActivity">
+    tools:context="com.example.remembergroup.chat_app.UserActivity">
 
     <TabHost
         android:id="@+id/tabHost"
@@ -30,19 +30,22 @@
 
                 <LinearLayout
                     android:id="@+id/tab1"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:orientation="vertical">
 
                     <Space
                         android:layout_width="match_parent"
-                        android:layout_height="40dp" />
+                        android:layout_height="20dp" />
 
                     <ListView
-                        android:id="@+id/lvFriends"
+                        android:id="@+id/lvConversations"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:divider="@color/transparent"
+                        android:dividerHeight="10.0sp"
+                        android:layout_marginRight="5dp"
+                        android:layout_marginLeft="5dp"
                         />
                 </LinearLayout>
 
@@ -52,17 +55,19 @@
                     android:layout_height="match_parent"
                     android:orientation="vertical">
 
-                </LinearLayout>
-                <LinearLayout
-                    android:id="@+id/tab3"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical">
+                    <Space
+                        android:layout_width="match_parent"
+                        android:layout_height="20dp" />
 
                     <ListView
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:id="@+id/lvFriendsOnline">
+                        android:id="@+id/lvFriends"
+                        android:dividerHeight="5.0sp"
+                        android:divider="@color/transparent"
+                        android:layout_marginRight="5dp"
+                        android:layout_marginLeft="5dp"
+                        >
                     </ListView>
 
                 </LinearLayout>

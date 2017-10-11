@@ -1,4 +1,4 @@
-package com.example.remembergroup.messenger2;
+package com.example.remembergroup.chat_app;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -9,6 +9,7 @@ import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -20,21 +21,36 @@ import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.TabHost;
 
+import com.example.remembergroup.adapter.ConversationAdapter;
 import com.example.remembergroup.adapter.FriendAdapter;
 import com.example.remembergroup.model.Friend;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONArray;
+
 import java.util.ArrayList;
+
+import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
 
 public class UserActivity extends AppCompatActivity {
 
+    private final String SERVER_SEND_CONVERSATIONS = "SERVER_SEND_CONVERSATIONS";
+    private final String SERVER_SEND_FRIENDS = "SERVER_SEND_FRIENDS";
+    private final String CLIENT_REQUEST_DATA = "CLIENT_REQUEST_DATA";
+    //private final String SERVER_SEND_CONVERSATIONS = "SERVER_SEND_CONVERSATIONS";
+
+
+    private Socket mSocket;
     TabHost tabHost;
-    ListView lvFriend;
-    ArrayList<Friend> friends;
-    FriendAdapter friendAdapter;
+    ListView lvConversations;
+    ArrayList<Friend> listConversations;
+    ConversationAdapter adapterConversations;
     ImageButton btnChat,btnProfile,btnSetting;
-    ListView lvFriendsOnline;
-    ArrayList<Friend> listFriendsOnline;
-    FriendAdapter adapterFriendsOnline;
+    ListView lvFriends;
+    ArrayList<Friend> listFriends;
+    FriendAdapter adapterFriends;
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +62,16 @@ public class UserActivity extends AppCompatActivity {
         settingUI();
 
         addEvents();
+
+        initSocket();
+    }
+
+    private void initSocket() {
+        mSocket = SingletonSocket.getInstance().mSocket;
+
+        mSocket.emit(CLIENT_REQUEST_DATA, "please send to me my data");
+        mSocket.on(SERVER_SEND_CONVERSATIONS, onListen_Conversations);
+        mSocket.on(SERVER_SEND_FRIENDS, onListen_Friends);
     }
 
     //TO DO: load id of controls from xml file
@@ -71,14 +97,14 @@ public class UserActivity extends AppCompatActivity {
     }
     //TO DO: add events
     private void addEvents() {
-        lvFriend.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        lvConversations.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                launchChatRoom("MEM_ROOM", friends.get(i).getName());
+                launchChatRoom("MEM_ROOM", listConversations.get(i).getName());
             }
         });
 
-        lvFriendsOnline.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        lvFriends.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
@@ -96,25 +122,20 @@ public class UserActivity extends AppCompatActivity {
         tabHost= (TabHost) findViewById(R.id.tabHost);
         tabHost.setup();
         TabHost.TabSpec tab1=tabHost.newTabSpec("t1");
-        tab1.setIndicator("Your message");
+        tab1.setIndicator("Conversations");
         tab1.setContent(R.id.tab1);
         tabHost.addTab(tab1);
 
         TabHost.TabSpec tab2=tabHost.newTabSpec("t2");
-        tab2.setIndicator("Nearly");
+        tab2.setIndicator("Friends");
         tab2.setContent(R.id.tab2);
         tabHost.addTab(tab2);
-
-        TabHost.TabSpec tab3=tabHost.newTabSpec("t2");
-        tab3.setIndicator("Active message");
-        tab3.setContent(R.id.tab3);
-        tabHost.addTab(tab3);
 
         btnChat= (ImageButton) findViewById(R.id.btnChat);
         btnProfile= (ImageButton) findViewById(R.id.btnProfile);
         btnSetting= (ImageButton) findViewById(R.id.btnSetting);
 
-        lvFriend= (ListView) findViewById(R.id.lvFriends);
+        lvConversations = (ListView) findViewById(R.id.lvConversations);
         Bitmap person1= BitmapFactory.decodeResource(getResources(), R.drawable.person);
         Bitmap person2= BitmapFactory.decodeResource(getResources(), R.drawable.person1);
         Bitmap person3= BitmapFactory.decodeResource(getResources(), R.drawable.person2);
@@ -129,16 +150,17 @@ public class UserActivity extends AppCompatActivity {
         Friend friend3=new Friend("Nguyễn Thị Loan",person3);
         friend3.setDateTime(calendar.getTime());
         friend2.setDateTime(calendar.getTime());
-        friends=new ArrayList<>();
-        friends.add(friend1);
-        friends.add(friend2);
-        friends.add(friend3);
-        friendAdapter=new FriendAdapter(this,R.layout.message,friends);
-        lvFriend.setAdapter(friendAdapter);
+        listConversations =new ArrayList<>();
+        listConversations.add(friend1);
+        listConversations.add(friend2);
+        listConversations.add(friend3);
+        adapterConversations =new ConversationAdapter(this,R.layout.conversation, listConversations);
+        lvConversations.setAdapter(adapterConversations);
 
-        lvFriendsOnline = (ListView) findViewById(R.id.lvFriendsOnline);
-        adapterFriendsOnline = new FriendAdapter(this, R.layout.friend_active, listFriendsOnline);
-        listFriendsOnline = new ArrayList<>();
+        lvFriends = (ListView) findViewById(R.id.lvFriends);
+        listFriends = new ArrayList<>();
+        adapterFriends = new FriendAdapter(this, R.layout.friend, listFriends);
+        lvFriends.setAdapter(adapterFriends);
     }
 
     // Launch chatRoom activity
@@ -154,7 +176,7 @@ public class UserActivity extends AppCompatActivity {
         MenuInflater inflater=getMenuInflater();
         inflater.inflate(R.menu.search_view,menu);
         MenuItem mnuSearch=menu.findItem(R.id.mnuSearch);
-        mnuSearch.setTitle("Search your message");
+        mnuSearch.setTitle("Search your conversation");
         SearchView searchView= (SearchView) mnuSearch.getActionView();
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -164,10 +186,68 @@ public class UserActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                friendAdapter.getFilter().filter(newText);
+                adapterConversations.getFilter().filter(newText);
                 return false;
             }
         });
         return super.onCreateOptionsMenu(menu);
     }
+
+    private Emitter.Listener onListen_Conversations = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    JSONObject data = (JSONObject) args[0];
+                    JSONArray array;
+                    try {
+                        array = data.getJSONArray(SERVER_SEND_CONVERSATIONS);
+                        if (array != null) {
+                            for(int i = 0; i < array.length(); i++){
+                                for(int j = 0; j < listFriends.size(); j++){
+                                    if (listFriends.get(j).getId().equals(array.getString(i))){
+                                        listConversations.add(listFriends.get(j));
+                                        Log.i("Test", "Change");
+                                    }
+                                }
+                            }
+
+                            adapterConversations.notifyDataSetChanged();
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    };
+
+    private Emitter.Listener onListen_Friends = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    JSONObject data = (JSONObject) args[0];
+                    JSONArray array;
+                    try {
+                        array = data.getJSONArray(SERVER_SEND_FRIENDS);
+                        if (array != null){
+                            for(int i = 0; i < array.length(); i++){
+                                JSONObject obj = array.getJSONObject(i);
+                                listFriends.add(new Friend( obj.getString("email"),
+                                                            obj.getString("name"),
+                                                            BitmapFactory.decodeResource(getResources(), R.drawable.person),
+                                                            obj.getString("state")=="online" ? true:false));
+                            }
+                        }
+                        adapterFriends.notifyDataSetChanged();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    };
 }

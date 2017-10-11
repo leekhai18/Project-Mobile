@@ -1,4 +1,4 @@
-package com.example.remembergroup.messenger2;
+package com.example.remembergroup.chat_app;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -35,7 +35,7 @@ public class RegisterActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.register);
+        setContentView(R.layout.activity_register);
 
         mSocket = SingletonSocket.getInstance().mSocket;
 
@@ -131,7 +131,7 @@ public class RegisterActivity extends Activity {
 
     /**
      * Function to store user in MySQL database will post params(tag, name,
-     * email, password) to register url
+     * email, password) to activity_register url
      */
 
 
@@ -146,7 +146,7 @@ public class RegisterActivity extends Activity {
                     if (data == "true") {
                         launchLogin();
                     } else {
-                        Log.d("error", "can't register");
+                        Log.d("error", "can't activity_register");
                     }
                     hideDialog();
                 }

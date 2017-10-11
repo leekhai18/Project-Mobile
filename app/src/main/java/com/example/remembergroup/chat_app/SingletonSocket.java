@@ -1,4 +1,4 @@
-package com.example.remembergroup.messenger2;
+package com.example.remembergroup.chat_app;
 
 import java.net.URISyntaxException;
 

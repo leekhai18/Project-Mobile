@@ -10,11 +10,16 @@ import java.util.Date;
 
 public class Friend {
     //name of your friend
-    private String name;
+    private String name = "";
     //your friend is online set true or false
-    private boolean isOnline;
+    private boolean isOnline = false;
     //text you and your friend chat in the last time
-    private String textLast;
+    private String textLast = "";
+    //time you and your friend chat
+    private Date dateTime = new Date();
+    //id to recognize who are they
+    private String id = "";
+
 
     public String getId() {
         return id;
@@ -24,22 +29,12 @@ public class Friend {
         this.id = id;
     }
 
-    //time you and your friend chat
-    private Date dateTime;
-    //id to recognize who are they
-    private String id;
-
     public Date getDateTime() {
         return dateTime;
     }
 
     public void setDateTime(Date dateTime) {
         this.dateTime = dateTime;
-    }
-
-    public Friend(String name, Bitmap avatar) {
-        this.name = name;
-        this.avatar = avatar;
     }
 
     private Bitmap avatar;
@@ -55,9 +50,21 @@ public class Friend {
     public Friend() {
     }
 
+    public Friend(String name, Bitmap avatar) {
+        this.name = name;
+        this.avatar = avatar;
+    }
+
     public Friend(String name) {
 
         this.name = name;
+    }
+
+    public Friend(String id, String name, Bitmap avt, Boolean isOn){
+        this.id = id;
+        this.isOnline = isOn;
+        this.name = name;
+        this.avatar = avt;
     }
 
     public String getName() {

@@ -1,4 +1,4 @@
-package com.example.remembergroup.messenger2;
+package com.example.remembergroup.chat_app;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity  {
         super.onCreate(savedInstanceState);
         try {
             PackageInfo info = getPackageManager().getPackageInfo(
-                    "com.example.chauvansang.messenger2",
+                    "com.example.remembergroup.chat_app",
                     PackageManager.GET_SIGNATURES);
             for (Signature signature : info.signatures) {
                 MessageDigest md = MessageDigest.getInstance("SHA");
@@ -49,10 +49,9 @@ public class MainActivity extends AppCompatActivity  {
                 Log.d("KeyHash:", Base64.encodeToString(md.digest(), Base64.DEFAULT));
             }
         } catch (PackageManager.NameNotFoundException e) {
-
         } catch (NoSuchAlgorithmException e) {
-
         }
+
         callbackManager = CallbackManager.Factory.create();
         setContentView(R.layout.activity_main);
         addControls();

@@ -17,7 +17,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.remembergroup.messenger2.R;
+import com.example.remembergroup.chat_app.R;
 import com.example.remembergroup.model.Constant;
 import com.example.remembergroup.model.Friend;
 import com.example.remembergroup.model.ImageMessage;
@@ -175,13 +175,13 @@ public class ChatAdapter extends ArrayAdapter<Message> {
 
             switch (type)
             {
-                //case message is text
+                //case conversation is text
                 case Constant.TYPE_TEXT_MESSAGE:
                     txtMessage=view.findViewById(R.id.txtMessage);
                     txtTime=view.findViewById(R.id.txtTime);
                     imgAvatar=view.findViewById(R.id.imgAvatar);
                     break;
-                //case message is image
+                //case conversation is image
                 case  Constant.TYPE_IMAGE_MESSAGE:
                     this.imgImage = view.findViewById(R.id.imgImage);
                     txtTime=view.findViewById(R.id.txtTime);

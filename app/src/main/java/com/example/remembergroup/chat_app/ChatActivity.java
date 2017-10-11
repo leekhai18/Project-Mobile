@@ -1,4 +1,4 @@
-package com.example.remembergroup.messenger2;
+package com.example.remembergroup.chat_app;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
@@ -154,7 +154,7 @@ public class ChatActivity extends AppCompatActivity {
         scrollMyListViewToBottom();
 
         org.json.simple.JSONObject  obj = new org.json.simple.JSONObject();
-        obj.put("message", txtMessage.getText().toString());
+        obj.put("conversation", txtMessage.getText().toString());
         obj.put("receiver", txt.getText().toString());
         mSocket.emit(CLIENT_SEND_MESSAGE, obj);
     }
