@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+
 import java.util.Calendar;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
@@ -39,31 +40,27 @@ public class ChatActivity extends AppCompatActivity {
     private final String SERVER_SEND_MESSAGE = "SERVER_SEND_MESSAGE";
     private final String MESSAGE = "MESSAGE";
     private final String SENDER = "SENDER";
+    private  final String MEM_ROOM = "MEM_ROOM";
 
     private Socket mSocket;
 
     ListView lvChat;
     ChatAdapter chatAdapter;
-    ArrayList<Message> messages;
-    Friend friend;
+    ArrayList<Message> messageArrayList;
+    Friend friendChat;
     ImageButton btnSend,btnImage,btnEmotion,btnCamera;
     EditText txtMessage;
     TextView txt;
-    boolean check;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
+        initFriend();
         initMine();
-
-        getFriend();
         addControls();
-        //TO DO: setting user interface
-        settingUI();
         addEvents();
-        handleExtraPreActivity();
         initSocket();
     }
 
@@ -73,11 +70,11 @@ public class ChatActivity extends AppCompatActivity {
     }
 
 
-    private void handleExtraPreActivity() {
-        Bundle extras = getIntent().getExtras();
-        if (extras != null) {
-            String userJoinRoom = extras.getString("MEM_ROOM");
-            txt.setText(userJoinRoom);
+    private void initFriend() {
+        Intent intent = this.getIntent();
+        Friend friendChatWith = (Friend) intent.getParcelableExtra(MEM_ROOM);
+        if (friendChatWith != null) {
+            setFriend(friendChatWith);
         }
     }
 
@@ -89,34 +86,30 @@ public class ChatActivity extends AppCompatActivity {
         listLayout.add(R.layout.your_friend_image_chat);
 
         txt = (TextView) findViewById(R.id.txt);
+        txt.setText(friendChat.getName());
         lvChat= (ListView) findViewById(R.id.lvChat);
         btnSend= (ImageButton) findViewById(R.id.btnSend);
         btnImage= (ImageButton) findViewById(R.id.btnImage);
         btnCamera= (ImageButton) findViewById(R.id.btnCamera);
         btnEmotion= (ImageButton) findViewById(R.id.btnEmotion);
         txtMessage= (EditText) findViewById(R.id.txtMessage);
-        messages=new ArrayList<>();
-        chatAdapter=new ChatAdapter(this,listLayout,messages,friend);
+        messageArrayList =new ArrayList<>();
+        chatAdapter=new ChatAdapter(this,listLayout, messageArrayList, friendChat);
         lvChat.setAdapter(chatAdapter);
-    }
-
-    private void settingUI() {
     }
 
     private void initMine() {
         Bitmap avatar = BitmapFactory.decodeResource(this.getResources(),
                 R.drawable.person2);
         Mine.getInstance().setAvatar(avatar);
-        Mine.getInstance().setName("Hoàng Bảo Long");
     }
 
     @TargetApi(Build.VERSION_CODES.N)
-    private void getFriend() {
+    private void setFriend(Friend fr) {
         Bitmap avatar = BitmapFactory.decodeResource(this.getResources(),
                 R.drawable.person1);
-        friend=new Friend("Châu Văn Sang",avatar);
-        @SuppressLint({"NewApi", "LocalSuppress"}) Calendar calendar=Calendar.getInstance();
-        friend.setDateTime(calendar.getTime());
+        fr.setAvatar(avatar);
+        friendChat = fr;
     }
 
     private void addEvents() {
@@ -140,7 +133,7 @@ public class ChatActivity extends AppCompatActivity {
 //        Bitmap icon = BitmapFactory.decodeResource(getResources(),
 //                R.drawable.person1);
 //        ImageMessage imageMessage=new ImageMessage(Constant.TYPE_IMAGE_MESSAGE,true,icon);
-//        messages.add(imageMessage);
+//        messageArrayList.add(imageMessage);
 //        chatAdapter.notifyDataSetChanged();
 //        scrollMyListViewToBottom();
         Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
@@ -149,13 +142,13 @@ public class ChatActivity extends AppCompatActivity {
 
     private void sendMessage() {
         TextMessage message = new TextMessage(txtMessage.getText().toString(), true);
-        messages.add(message);
+        messageArrayList.add(message);
         chatAdapter.notifyDataSetChanged();
         scrollMyListViewToBottom();
 
         org.json.simple.JSONObject  obj = new org.json.simple.JSONObject();
-        obj.put("conversation", txtMessage.getText().toString());
-        obj.put("receiver", txt.getText().toString());
+        obj.put("message", txtMessage.getText().toString());
+        obj.put("receiver", friendChat.getId());
         mSocket.emit(CLIENT_SEND_MESSAGE, obj);
     }
     private void scrollMyListViewToBottom() {
@@ -178,7 +171,7 @@ public class ChatActivity extends AppCompatActivity {
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
             Bitmap photo = (Bitmap) data.getExtras().get("data");
             ImageMessage imageMessage=new ImageMessage(Constant.TYPE_IMAGE_MESSAGE,true,photo);
-            messages.add(imageMessage);
+            messageArrayList.add(imageMessage);
             chatAdapter.notifyDataSetChanged();
             scrollMyListViewToBottom();
         }
@@ -197,7 +190,7 @@ public class ChatActivity extends AppCompatActivity {
                     try {
                         message = data.getString(MESSAGE);
                         sender = data.getString(SENDER);
-                        messages.add(new TextMessage(sender + ": " + message, false));
+                        messageArrayList.add(new TextMessage(message, false));
                         chatAdapter.notifyDataSetChanged();
                     } catch (JSONException e) {
                         e.printStackTrace();

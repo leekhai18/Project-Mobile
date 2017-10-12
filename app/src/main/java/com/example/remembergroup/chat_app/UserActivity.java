@@ -3,6 +3,8 @@ package com.example.remembergroup.chat_app;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+
+import java.io.Serializable;
 import java.util.Calendar;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
@@ -30,6 +32,7 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 
 import java.util.ArrayList;
+import java.io.NotSerializableException;
 
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -39,7 +42,11 @@ public class UserActivity extends AppCompatActivity {
     private final String SERVER_SEND_CONVERSATIONS = "SERVER_SEND_CONVERSATIONS";
     private final String SERVER_SEND_FRIENDS = "SERVER_SEND_FRIENDS";
     private final String CLIENT_REQUEST_DATA = "CLIENT_REQUEST_DATA";
-    //private final String SERVER_SEND_CONVERSATIONS = "SERVER_SEND_CONVERSATIONS";
+    private  final String SERVER_UPDATE_STATE_TO_OTHERS = "SERVER_UPDATE_STATE_TO_OTHERS";
+    private  final String USER_STATE = "USER_STATE";
+    private  final String USER_EMAIL = "USER_EMAIL";
+    private  final String SERVER_UPDATE_FRIENDS_ONLINE = "SERVER_UPDATE_FRIENDS_ONLINE";
+    private  final String MEM_ROOM = "MEM_ROOM";
 
 
     private Socket mSocket;
@@ -72,6 +79,8 @@ public class UserActivity extends AppCompatActivity {
         mSocket.emit(CLIENT_REQUEST_DATA, "please send to me my data");
         mSocket.on(SERVER_SEND_CONVERSATIONS, onListen_Conversations);
         mSocket.on(SERVER_SEND_FRIENDS, onListen_Friends);
+        mSocket.on(SERVER_UPDATE_STATE_TO_OTHERS, onListen_UpdateStateToOthers);
+        mSocket.on(SERVER_UPDATE_FRIENDS_ONLINE, onListen_UpdateFriendsOnline);
     }
 
     //TO DO: load id of controls from xml file
@@ -100,14 +109,14 @@ public class UserActivity extends AppCompatActivity {
         lvConversations.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                launchChatRoom("MEM_ROOM", listConversations.get(i).getName());
+                launchChatRoom(MEM_ROOM, listConversations.get(i));
             }
         });
 
         lvFriends.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-
+                launchChatRoom(MEM_ROOM, listFriends.get(i));
             }
         });
 
@@ -141,15 +150,10 @@ public class UserActivity extends AppCompatActivity {
         Bitmap person3= BitmapFactory.decodeResource(getResources(), R.drawable.person2);
         Friend friend1=new Friend("Nguyễn Thị Kiều Trang",person1);
         friend1.setOnline(true);
-        friend1.setTextLast("OK, hôm sau nhafdsfsdfsdfsdfsdfsdfsdfsdfsddssd");
         Calendar calendar=Calendar.getInstance();
-
-        friend1.setDateTime(calendar.getTime());
 
         Friend friend2=new Friend("Nguyễn Huy Hùng",person2);
         Friend friend3=new Friend("Nguyễn Thị Loan",person3);
-        friend3.setDateTime(calendar.getTime());
-        friend2.setDateTime(calendar.getTime());
         listConversations =new ArrayList<>();
         listConversations.add(friend1);
         listConversations.add(friend2);
@@ -164,9 +168,9 @@ public class UserActivity extends AppCompatActivity {
     }
 
     // Launch chatRoom activity
-    private void launchChatRoom(String key, String data){
-        Intent i = new Intent(getApplicationContext(), ChatActivity.class);
-        i.putExtra(key, data);
+    private void launchChatRoom(String key, Friend friend){
+        Intent i = new Intent(this, ChatActivity.class);
+        i.putExtra(key, friend);
         startActivity(i);
         finish();
     }
@@ -208,7 +212,6 @@ public class UserActivity extends AppCompatActivity {
                                 for(int j = 0; j < listFriends.size(); j++){
                                     if (listFriends.get(j).getId().equals(array.getString(i))){
                                         listConversations.add(listFriends.get(j));
-                                        Log.i("Test", "Change");
                                     }
                                 }
                             }
@@ -242,6 +245,90 @@ public class UserActivity extends AppCompatActivity {
                                                             obj.getString("state")=="online" ? true:false));
                             }
                         }
+                        adapterFriends.notifyDataSetChanged();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    };
+
+    private Emitter.Listener onListen_UpdateStateToOthers = new Emitter.Listener() {
+        @Override
+        public void call(final Object...args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    JSONObject data = (JSONObject) args[0];
+                    String userEmail;
+                    String state;
+                    try {
+                        userEmail = data.getString(USER_EMAIL);
+                        state = data.getString(USER_STATE);
+                        if (state.equals("online")) {
+                            for(int i = 0; i < listFriends.size(); i++){
+                                if (listFriends.get(i).getId().equals(userEmail)){
+                                    listFriends.get(i).setOnline(true);
+                                }
+                            }
+
+                            for(int i = 0; i < listConversations.size(); i++){
+                                if (listConversations.get(i).getId().equals(userEmail)){
+                                    listConversations.get(i).setOnline(true);
+                                }
+                            }
+                        } else {
+                            for(int i = 0; i < listFriends.size(); i++){
+                                if (listFriends.get(i).getId().equals(userEmail)){
+                                    listFriends.get(i).setOnline(false);
+                                }
+                            }
+
+                            for(int i = 0; i < listConversations.size(); i++){
+                                if (listConversations.get(i).getId().equals(userEmail)){
+                                    listConversations.get(i).setOnline(false);
+                                }
+                            }
+                        }
+
+                        adapterConversations.notifyDataSetChanged();
+                        adapterFriends.notifyDataSetChanged();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    };
+
+    private Emitter.Listener onListen_UpdateFriendsOnline = new Emitter.Listener() {
+        @Override
+        public void call(final Object...args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    JSONObject data = (JSONObject) args[0];
+                    JSONArray array;
+                    try {
+                        array = data.getJSONArray(SERVER_UPDATE_FRIENDS_ONLINE);
+                        if (array != null) {
+                            for (int i = 0; i < array.length(); i++){
+                                for(int j = 0; j < listFriends.size(); j++){
+                                    if (listFriends.get(j).getId().equals(array.getString(i))){
+                                        listFriends.get(j).setOnline(true);
+                                    }
+                                }
+
+                                for(int j = 0; j < listConversations.size(); j++){
+                                    if (listConversations.get(j).getId().equals(array.getString(i))){
+                                        listConversations.get(j).setOnline(true);
+                                    }
+                                }
+                            }
+                        }
+
+                        adapterConversations.notifyDataSetChanged();
                         adapterFriends.notifyDataSetChanged();
                     } catch (JSONException e) {
                         e.printStackTrace();

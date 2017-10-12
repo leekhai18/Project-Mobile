@@ -1,24 +1,26 @@
 package com.example.remembergroup.model;
 
 import android.graphics.Bitmap;
+import android.os.Parcel;
+import android.os.Parcelable;
 
+import java.io.Serializable;
 import java.util.Date;
+import java.io.NotSerializableException;
 
 /**
  * Created by chauvansang on 9/21/2017.
  */
 
-public class Friend {
+public class Friend implements Parcelable {
     //name of your friend
     private String name = "";
     //your friend is online set true or false
     private boolean isOnline = false;
-    //text you and your friend chat in the last time
-    private String textLast = "";
-    //time you and your friend chat
-    private Date dateTime = new Date();
     //id to recognize who are they
     private String id = "";
+
+    private Bitmap avatar;
 
 
     public String getId() {
@@ -29,16 +31,6 @@ public class Friend {
         this.id = id;
     }
 
-    public Date getDateTime() {
-        return dateTime;
-    }
-
-    public void setDateTime(Date dateTime) {
-        this.dateTime = dateTime;
-    }
-
-    private Bitmap avatar;
-
     public Bitmap getAvatar() {
         return avatar;
     }
@@ -48,6 +40,7 @@ public class Friend {
     }
 
     public Friend() {
+
     }
 
     public Friend(String name, Bitmap avatar) {
@@ -56,7 +49,6 @@ public class Friend {
     }
 
     public Friend(String name) {
-
         this.name = name;
     }
 
@@ -83,11 +75,32 @@ public class Friend {
         isOnline = online;
     }
 
-    public String getTextLast() {
-        return textLast;
+    @Override
+    public int describeContents() {
+        return 0;
     }
 
-    public void setTextLast(String textLast) {
-        this.textLast = textLast;
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(this.id);
+        parcel.writeString(this.name);
+        parcel.writeValue(this.isOnline);
+    }
+
+    // this is used to regenerate your object. All Parcelables must have a CREATOR that implements these two methods
+    public static final Parcelable.Creator<Friend> CREATOR = new Parcelable.Creator<Friend>() {
+        public Friend createFromParcel(Parcel in) {
+            return new Friend(in);
+        }
+
+        public Friend[] newArray(int size) {
+            return new Friend[size];
+        }
+    };
+
+    private Friend(Parcel in) {
+        this.id = in.readString();
+        this.name = in.readString();
+        this.isOnline = (boolean) in.readValue(ClassLoader.getSystemClassLoader());
     }
 }

@@ -119,8 +119,7 @@ public class ChatAdapter extends ArrayAdapter<Message> {
             holder.imgImage.setImageBitmap(imageMessage.getImage());
             @SuppressLint({"NewApi", "LocalSuppress", "SimpleDateFormat"})
             SimpleDateFormat format=new SimpleDateFormat("MMMM dd,yyyy");
-            holder.txtTime.setText(format.format(friend.getDateTime()));
-            holder.imgAvatar.setImageBitmap(friend.getAvatar());
+            holder.imgAvatar.setImageBitmap(Mine.getInstance().getAvatar());
         }
         else
         {
@@ -129,7 +128,7 @@ public class ChatAdapter extends ArrayAdapter<Message> {
             @SuppressLint({"NewApi", "LocalSuppress", "SimpleDateFormat"})
             SimpleDateFormat format=new SimpleDateFormat("MMMM dd,yyyy");
             holder.txtTime.setText(format.format(calendar.getTime()));
-            holder.imgAvatar.setImageBitmap(Mine.getInstance().getAvatar());
+            holder.imgAvatar.setImageBitmap(friend.getAvatar());
         }
 
 
@@ -140,10 +139,7 @@ public class ChatAdapter extends ArrayAdapter<Message> {
         if(textMessage.isMine())
         {
             holder.txtMessage.setText(textMessage.getText());
-            @SuppressLint({"NewApi", "LocalSuppress", "SimpleDateFormat"})
-            SimpleDateFormat format=new SimpleDateFormat("MMMM dd,yyyy");
-            holder.txtTime.setText(format.format(friend.getDateTime()));
-            holder.imgAvatar.setImageBitmap(friend.getAvatar());
+            holder.imgAvatar.setImageBitmap(Mine.getInstance().getAvatar());
         }
         else
         {
@@ -152,7 +148,7 @@ public class ChatAdapter extends ArrayAdapter<Message> {
             @SuppressLint({"NewApi", "LocalSuppress", "SimpleDateFormat"})
             SimpleDateFormat format=new SimpleDateFormat("MMMM dd,yyyy");
             holder.txtTime.setText(format.format(calendar.getTime()));
-            holder.imgAvatar.setImageBitmap(Mine.getInstance().getAvatar());
+            holder.imgAvatar.setImageBitmap(friend.getAvatar());
         }
 
     }

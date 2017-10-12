@@ -68,10 +68,6 @@ public class ConversationAdapter extends ArrayAdapter<Friend>  {
 
         //set values to each controls
         txtName.setText(friend.getName());
-        txtText.setText(friend.getTextLast());
-
-        SimpleDateFormat format=new SimpleDateFormat("MMM dd, yyyy");
-        txtTime.setText(format.format(friend.getDateTime()));
 
         if(friend.getAvatar()!=null)
             imgImage.setImageBitmap(friend.getAvatar());
