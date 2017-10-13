@@ -28,6 +28,7 @@ public class RegisterActivity extends Activity {
     private EditText inputFullName;
     private EditText inputEmail;
     private EditText inputPassword;
+    private EditText inputPhoneNumber;
     private ProgressDialog pDialog;
 
     private Socket mSocket;
@@ -42,6 +43,7 @@ public class RegisterActivity extends Activity {
         inputFullName = (EditText) findViewById(R.id.name);
         inputEmail = (EditText) findViewById(R.id.email);
         inputPassword = (EditText) findViewById(R.id.password);
+        inputPhoneNumber = (EditText) findViewById(R.id.phoneNumber);
         btnRegister = (Button) findViewById(R.id.btnRegister);
         btnLinkToLogin = (Button) findViewById(R.id.btnLinkToLoginScreen);
 
@@ -73,18 +75,19 @@ public class RegisterActivity extends Activity {
         String username = inputFullName.getText().toString().trim();
         String email = inputEmail.getText().toString().trim();
         String password = inputPassword.getText().toString().trim();
+        String phoneNumber = inputPhoneNumber.getText().toString().trim();
 
-        boolean checkInfo = checkInputInfoUser(username, email, password);
+        boolean checkInfo = checkInputInfoUser(username, email, password, phoneNumber);
         if (checkInfo == true) {
-            mSocket.emit(CLIENT_REGISTER, username, password, email);
+            mSocket.emit(CLIENT_REGISTER, username, password, email, phoneNumber);
         } else {
             Toast.makeText(getApplicationContext(), "Please enter your details!", Toast.LENGTH_SHORT).show();
         }
 
     }
 
-    private boolean checkInputInfoUser(String username, String email, String password) {
-        if (!username.isEmpty() && !email.isEmpty() && !password.isEmpty()) {
+    private boolean checkInputInfoUser(String username, String email, String password, String phone) {
+        if (!username.isEmpty() && !email.isEmpty() && !password.isEmpty() && !phone.isEmpty()) {
             return true;
         }
         return false;

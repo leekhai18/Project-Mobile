@@ -47,7 +47,7 @@
 
             <TextView
                 android:layout_marginLeft="10dp"
-                android:text="fdfdfdfdfdfdfgdsdsdsdsdsdsdsdsfgfgfgfgdfdf"
+                android:text="User name"
                 android:id="@+id/txtName"
                 android:layout_weight="3.16"
                 android:ellipsize="end"
@@ -66,7 +66,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
-                android:text="fdsfdfff"
+                android:text="content"
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textSize="14sp"

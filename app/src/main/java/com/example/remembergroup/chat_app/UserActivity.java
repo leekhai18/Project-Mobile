@@ -66,8 +66,6 @@ public class UserActivity extends AppCompatActivity {
 
         addControls();
 
-        settingUI();
-
         addEvents();
 
         initSocket();
@@ -83,27 +81,6 @@ public class UserActivity extends AppCompatActivity {
         mSocket.on(SERVER_UPDATE_FRIENDS_ONLINE, onListen_UpdateFriendsOnline);
     }
 
-    //TO DO: load id of controls from xml file
-    private void settingUI() {
-        //get size in resource
-        int imageSizeW= (int) this.getResources().getDimension(R.dimen.imageSizeW);
-        int imageSizeH= (int) this.getResources().getDimension(R.dimen.imageSizeH);
-
-        //get width and height of screen
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        int screenHeight = displayMetrics.heightPixels;
-        int screenWidth = displayMetrics.widthPixels;
-
-        //calculate space of three imageButton
-        int space= (screenWidth-imageSizeW*3)/4;
-        //create layout params to three image button
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(imageSizeW, imageSizeH);
-        params.setMargins(space,0,0,0);
-        btnChat.setLayoutParams(params);
-        btnProfile.setLayoutParams(params);
-        btnSetting.setLayoutParams(params);
-    }
     //TO DO: add events
     private void addEvents() {
         lvConversations.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -123,7 +100,6 @@ public class UserActivity extends AppCompatActivity {
     }
 
 
-
     //TO DO: setting user interface
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void addControls() {
@@ -140,24 +116,8 @@ public class UserActivity extends AppCompatActivity {
         tab2.setContent(R.id.tab2);
         tabHost.addTab(tab2);
 
-        btnChat= (ImageButton) findViewById(R.id.btnChat);
-        btnProfile= (ImageButton) findViewById(R.id.btnProfile);
-        btnSetting= (ImageButton) findViewById(R.id.btnSetting);
-
         lvConversations = (ListView) findViewById(R.id.lvConversations);
-        Bitmap person1= BitmapFactory.decodeResource(getResources(), R.drawable.person);
-        Bitmap person2= BitmapFactory.decodeResource(getResources(), R.drawable.person1);
-        Bitmap person3= BitmapFactory.decodeResource(getResources(), R.drawable.person2);
-        Friend friend1=new Friend("Nguyễn Thị Kiều Trang",person1);
-        friend1.setOnline(true);
-        Calendar calendar=Calendar.getInstance();
-
-        Friend friend2=new Friend("Nguyễn Huy Hùng",person2);
-        Friend friend3=new Friend("Nguyễn Thị Loan",person3);
         listConversations =new ArrayList<>();
-        listConversations.add(friend1);
-        listConversations.add(friend2);
-        listConversations.add(friend3);
         adapterConversations =new ConversationAdapter(this,R.layout.conversation, listConversations);
         lvConversations.setAdapter(adapterConversations);
 
@@ -172,7 +132,6 @@ public class UserActivity extends AppCompatActivity {
         Intent i = new Intent(this, ChatActivity.class);
         i.putExtra(key, friend);
         startActivity(i);
-        finish();
     }
 
     @Override
@@ -210,7 +169,7 @@ public class UserActivity extends AppCompatActivity {
                         if (array != null) {
                             for(int i = 0; i < array.length(); i++){
                                 for(int j = 0; j < listFriends.size(); j++){
-                                    if (listFriends.get(j).getId().equals(array.getString(i))){
+                                    if (listFriends.get(j).getEmail().equals(array.getString(i))){
                                         listConversations.add(listFriends.get(j));
                                     }
                                 }
@@ -268,25 +227,25 @@ public class UserActivity extends AppCompatActivity {
                         state = data.getString(USER_STATE);
                         if (state.equals("online")) {
                             for(int i = 0; i < listFriends.size(); i++){
-                                if (listFriends.get(i).getId().equals(userEmail)){
+                                if (listFriends.get(i).getEmail().equals(userEmail)){
                                     listFriends.get(i).setOnline(true);
                                 }
                             }
 
                             for(int i = 0; i < listConversations.size(); i++){
-                                if (listConversations.get(i).getId().equals(userEmail)){
+                                if (listConversations.get(i).getEmail().equals(userEmail)){
                                     listConversations.get(i).setOnline(true);
                                 }
                             }
                         } else {
                             for(int i = 0; i < listFriends.size(); i++){
-                                if (listFriends.get(i).getId().equals(userEmail)){
+                                if (listFriends.get(i).getEmail().equals(userEmail)){
                                     listFriends.get(i).setOnline(false);
                                 }
                             }
 
                             for(int i = 0; i < listConversations.size(); i++){
-                                if (listConversations.get(i).getId().equals(userEmail)){
+                                if (listConversations.get(i).getEmail().equals(userEmail)){
                                     listConversations.get(i).setOnline(false);
                                 }
                             }
@@ -315,13 +274,13 @@ public class UserActivity extends AppCompatActivity {
                         if (array != null) {
                             for (int i = 0; i < array.length(); i++){
                                 for(int j = 0; j < listFriends.size(); j++){
-                                    if (listFriends.get(j).getId().equals(array.getString(i))){
+                                    if (listFriends.get(j).getEmail().equals(array.getString(i))){
                                         listFriends.get(j).setOnline(true);
                                     }
                                 }
 
                                 for(int j = 0; j < listConversations.size(); j++){
-                                    if (listConversations.get(j).getId().equals(array.getString(i))){
+                                    if (listConversations.get(j).getEmail().equals(array.getString(i))){
                                         listConversations.get(j).setOnline(true);
                                     }
                                 }

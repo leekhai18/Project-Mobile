@@ -22,7 +22,7 @@ import com.example.remembergroup.model.Constant;
 import com.example.remembergroup.model.Friend;
 import com.example.remembergroup.model.ImageMessage;
 import com.example.remembergroup.model.Message;
-import com.example.remembergroup.model.Mine;
+import com.example.remembergroup.model.Me;
 import com.example.remembergroup.model.TextMessage;
 
 import java.util.List;
@@ -58,41 +58,34 @@ public class ChatAdapter extends ArrayAdapter<Message> {
         ViewHolder holder = null;
         LayoutInflater inflater=context.getLayoutInflater();
 
-        //
-        if(convertView==null)
+        int layout = listLayout.get(0);
+        switch (message.getType())
         {
-            int layout = listLayout.get(0);
-            switch (message.getType())
-            {
-                case Constant.TYPE_IMAGE_MESSAGE:
-                    if (message.isMine())
-                    {
-                        layout=listLayout.get(2);
-                    }
-                    else
-                    {
-                        layout=listLayout.get(3);
-                    }
-                    break;
-                case Constant.TYPE_TEXT_MESSAGE:
-                    if (message.isMine())
-                    {
-                        layout=listLayout.get(0);
-                    }
-                    else
-                    {
-                        layout=listLayout.get(1);
-                    }
-                    break;
-            }
-            convertView = inflater.inflate(layout,null);
-            holder=new ViewHolder(convertView,message.getType());
-            convertView.setTag(holder);
+            case Constant.TYPE_IMAGE_MESSAGE:
+                if (message.isMine())
+                {
+                    layout=listLayout.get(2);
+                }
+                else
+                {
+                    layout=listLayout.get(3);
+                }
+                break;
+            case Constant.TYPE_TEXT_MESSAGE:
+                if (message.isMine())
+                {
+                    layout=listLayout.get(0);
+                }
+                else
+                {
+                    layout=listLayout.get(1);
+                }
+                break;
         }
-        else
-        {
-            holder= (ViewHolder) convertView.getTag();
-        }
+        convertView = inflater.inflate(layout,null);
+        holder=new ViewHolder(convertView,message.getType());
+        convertView.setTag(holder);
+
 
         switch (message.getType())
         {
@@ -119,7 +112,7 @@ public class ChatAdapter extends ArrayAdapter<Message> {
             holder.imgImage.setImageBitmap(imageMessage.getImage());
             @SuppressLint({"NewApi", "LocalSuppress", "SimpleDateFormat"})
             SimpleDateFormat format=new SimpleDateFormat("MMMM dd,yyyy");
-            holder.imgAvatar.setImageBitmap(Mine.getInstance().getAvatar());
+            holder.imgAvatar.setImageBitmap(Me.getInstance().getAvatar());
         }
         else
         {
@@ -130,8 +123,6 @@ public class ChatAdapter extends ArrayAdapter<Message> {
             holder.txtTime.setText(format.format(calendar.getTime()));
             holder.imgAvatar.setImageBitmap(friend.getAvatar());
         }
-
-
     }
 
     private void makeViewText(LayoutInflater inflater,View convertView,ViewHolder holder,Message message) {
@@ -139,7 +130,7 @@ public class ChatAdapter extends ArrayAdapter<Message> {
         if(textMessage.isMine())
         {
             holder.txtMessage.setText(textMessage.getText());
-            holder.imgAvatar.setImageBitmap(Mine.getInstance().getAvatar());
+            holder.imgAvatar.setImageBitmap(Me.getInstance().getAvatar());
         }
         else
         {

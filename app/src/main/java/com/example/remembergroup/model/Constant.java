@@ -1,8 +1,5 @@
 package com.example.remembergroup.model;
 
-/**
- * Created by chauvansang on 10/4/2017.
- */
 //Save consant in here
 public final class Constant {
     public static final int CAMERA_REQUEST = 1888;

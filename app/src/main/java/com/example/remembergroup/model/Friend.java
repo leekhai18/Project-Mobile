@@ -8,71 +8,39 @@ import java.io.Serializable;
 import java.util.Date;
 import java.io.NotSerializableException;
 
-/**
- * Created by chauvansang on 9/21/2017.
- */
 
-public class Friend implements Parcelable {
-    //name of your friend
-    private String name = "";
-    //your friend is online set true or false
+public class Friend extends User {
     private boolean isOnline = false;
-    //id to recognize who are they
-    private String id = "";
-
-    private Bitmap avatar;
-
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public Bitmap getAvatar() {
-        return avatar;
-    }
-
-    public void setAvatar(Bitmap avatar) {
-        this.avatar = avatar;
-    }
-
-    public Friend() {
-
-    }
-
-    public Friend(String name, Bitmap avatar) {
-        this.name = name;
-        this.avatar = avatar;
-    }
-
-    public Friend(String name) {
-        this.name = name;
-    }
-
-    public Friend(String id, String name, Bitmap avt, Boolean isOn){
-        this.id = id;
-        this.isOnline = isOn;
-        this.name = name;
-        this.avatar = avt;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public boolean isOnline() {
         return isOnline;
     }
-
     public void setOnline(boolean online) {
         isOnline = online;
+    }
+
+    public Friend() {
+    }
+
+    public Friend(String name) {
+        super(name);
+    }
+
+    public Friend(String name, Bitmap avatar) {
+        super(name, avatar);
+    }
+
+    public Friend(String email, String name, Bitmap avatar){
+        super(email, name, avatar);
+    }
+
+    public Friend(String email, String name, Bitmap avatar, String phoneNum){
+        super(email, name, avatar, phoneNum);
+    }
+
+    public Friend(String email, String name, Bitmap avt, Boolean isOn){
+        super(email, name, avt);
+        this.isOnline = isOn;
     }
 
     @Override
@@ -82,9 +50,11 @@ public class Friend implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(this.id);
+        parcel.writeString(this.email);
         parcel.writeString(this.name);
         parcel.writeValue(this.isOnline);
+        parcel.writeValue(this.avatar);
+        parcel.writeString(this.phoneNumber);
     }
 
     // this is used to regenerate your object. All Parcelables must have a CREATOR that implements these two methods
@@ -92,15 +62,16 @@ public class Friend implements Parcelable {
         public Friend createFromParcel(Parcel in) {
             return new Friend(in);
         }
-
         public Friend[] newArray(int size) {
             return new Friend[size];
         }
     };
 
     private Friend(Parcel in) {
-        this.id = in.readString();
+        this.email = in.readString();
         this.name = in.readString();
         this.isOnline = (boolean) in.readValue(ClassLoader.getSystemClassLoader());
+        this.avatar = (Bitmap) in.readValue(ClassLoader.getSystemClassLoader());
+        this.phoneNumber = in.readString();
     }
 }

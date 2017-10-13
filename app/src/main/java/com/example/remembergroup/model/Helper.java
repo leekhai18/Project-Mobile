@@ -15,9 +15,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 
-/**
- * Created by chauvansang on 9/25/2017.
- */
 
 public class Helper {
     private static final Helper ourInstance = new Helper();

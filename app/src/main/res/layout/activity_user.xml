@@ -74,35 +74,4 @@
             </FrameLayout>
         </LinearLayout>
     </TabHost>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <ImageButton
-            android:id="@+id/btnChat"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:src="@drawable/icon"
-            android:scaleType="fitXY"
-            android:layout_marginLeft="30dp"
-            android:background="@color/transparent"
-            />
-
-        <ImageButton
-            android:id="@+id/btnProfile"
-
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginLeft="30dp"
-            android:background="@color/transparent"
-            android:scaleType="fitXY"
-            android:src="@drawable/profile" />
-        <ImageButton
-            android:id="@+id/btnSetting"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginLeft="30dp"
-            android:background="@color/transparent"
-            android:scaleType="fitXY"
-            android:src="@drawable/setting" />
-    </LinearLayout>
 </LinearLayout>

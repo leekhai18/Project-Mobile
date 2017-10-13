@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
@@ -29,6 +30,7 @@ import io.socket.emitter.Emitter;
 public class MainActivity extends AppCompatActivity  {
     private final String SERVER_RE_LOGIN = "SERVER_RE_LOGIN";
     private final String CLIENT_LOGIN = "CLIENT_LOGIN";
+
 
     private Socket mSocket;
     private ProgressDialog pDialog;
@@ -80,7 +82,6 @@ public class MainActivity extends AppCompatActivity  {
 
         // Progress dialog
         pDialog = new ProgressDialog(this);
-        pDialog.setCancelable(true);
     }
 
     private void addEvents() {
@@ -100,6 +101,8 @@ public class MainActivity extends AppCompatActivity  {
                 Toast.makeText(MainActivity.this,"Login failed",Toast.LENGTH_LONG).show();
             }
         });
+
+
         btnSignIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -116,6 +119,7 @@ public class MainActivity extends AppCompatActivity  {
                 }
             }
         });
+
         btnSignUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -145,7 +149,11 @@ public class MainActivity extends AppCompatActivity  {
     @Override
     protected void onPause() {
         super.onPause();
+    }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 
     @Override
@@ -168,13 +176,6 @@ public class MainActivity extends AppCompatActivity  {
             pDialog.show();
     }
 
-    private void hideDialog() {
-        if (pDialog.isShowing()) {
-            pDialog.dismiss();
-            pDialog.cancel();
-        }
-    }
-
     private Emitter.Listener onLogin = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
@@ -189,7 +190,6 @@ public class MainActivity extends AppCompatActivity  {
                         startActivity(intent);
                         finish();
                     }else{
-                        hideDialog();
                         Toast.makeText(getApplicationContext(), "Email or password is wrong", Toast.LENGTH_LONG).show();
                     }
                 }

@@ -2,9 +2,6 @@ package com.example.remembergroup.model;
 
 import android.graphics.Bitmap;
 
-/**
- * Created by chauvansang on 10/5/2017.
- */
 
 public class ImageMessage extends Message {
     private Bitmap image;
@@ -12,13 +9,12 @@ public class ImageMessage extends Message {
     public Bitmap getImage() {
         return image;
     }
-
     public void setImage(Bitmap image) {
         this.image = image;
     }
 
-    public ImageMessage(int type, boolean isMine, Bitmap image) {
-        super(type, isMine);
+    public ImageMessage(Bitmap image, boolean isMine) {
+        super(Constant.TYPE_IMAGE_MESSAGE, isMine);
         this.image = image;
     }
 }
