@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
-import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
@@ -15,6 +14,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.remembergroup.model.ListFriends;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
@@ -30,6 +30,7 @@ import io.socket.emitter.Emitter;
 public class MainActivity extends AppCompatActivity  {
     private final String SERVER_RE_LOGIN = "SERVER_RE_LOGIN";
     private final String CLIENT_LOGIN = "CLIENT_LOGIN";
+    private final String CLIENT_REQUEST_DATA = "CLIENT_REQUEST_DATA";
 
 
     private Socket mSocket;
@@ -64,6 +65,7 @@ public class MainActivity extends AppCompatActivity  {
     private void initSocket() {
         mSocket = SingletonSocket.getInstance().mSocket;
         mSocket.on(SERVER_RE_LOGIN, onLogin);
+        SingletonSocket.getInstance().ListeningToGetData();
 
         //mSocket.connect();
         if (! mSocket.connected()) {
@@ -185,10 +187,18 @@ public class MainActivity extends AppCompatActivity  {
                     String data =  args[0].toString();
 
                     if(data == "true"){
+                        mSocket.emit(CLIENT_REQUEST_DATA, "please send to me my data");
+
                         Intent intent = new Intent(MainActivity.this,
                                 UserActivity.class);
-                        startActivity(intent);
-                        finish();
+
+                        while(true){
+                            if(! ListFriends.getInstance().getArray().isEmpty()){
+                                startActivity(intent);
+                                finish();
+                                break;
+                            }
+                        }
                     }else{
                         Toast.makeText(getApplicationContext(), "Email or password is wrong", Toast.LENGTH_LONG).show();
                     }

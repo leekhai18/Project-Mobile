@@ -1,24 +1,17 @@
 package com.example.remembergroup.chat_app;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 
-import java.io.Serializable;
-import java.util.Calendar;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.TabHost;
@@ -26,13 +19,14 @@ import android.widget.TabHost;
 import com.example.remembergroup.adapter.ConversationAdapter;
 import com.example.remembergroup.adapter.FriendAdapter;
 import com.example.remembergroup.model.Friend;
+import com.example.remembergroup.model.ListConversations;
+import com.example.remembergroup.model.ListFriends;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
 import java.util.ArrayList;
-import java.io.NotSerializableException;
 
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -43,10 +37,11 @@ public class UserActivity extends AppCompatActivity {
     private final String SERVER_SEND_FRIENDS = "SERVER_SEND_FRIENDS";
     private final String CLIENT_REQUEST_DATA = "CLIENT_REQUEST_DATA";
     private  final String SERVER_UPDATE_STATE_TO_OTHERS = "SERVER_UPDATE_STATE_TO_OTHERS";
-    private  final String USER_STATE = "USER_STATE";
-    private  final String USER_EMAIL = "USER_EMAIL";
+    private  final String STATE = "STATE";
+    private  final String EMAIL = "EMAIL";
     private  final String SERVER_UPDATE_FRIENDS_ONLINE = "SERVER_UPDATE_FRIENDS_ONLINE";
     private  final String MEM_ROOM = "MEM_ROOM";
+    private  final String SERVER_SEND_DATA_ME = "SERVER_SEND_DATA_ME";
 
 
     private Socket mSocket;
@@ -58,25 +53,27 @@ public class UserActivity extends AppCompatActivity {
     ListView lvFriends;
     ArrayList<Friend> listFriends;
     FriendAdapter adapterFriends;
+
+
+
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user);
 
+        initSocket();
+
         addControls();
 
         addEvents();
-
-        initSocket();
     }
 
     private void initSocket() {
         mSocket = SingletonSocket.getInstance().mSocket;
 
-        mSocket.emit(CLIENT_REQUEST_DATA, "please send to me my data");
-        mSocket.on(SERVER_SEND_CONVERSATIONS, onListen_Conversations);
-        mSocket.on(SERVER_SEND_FRIENDS, onListen_Friends);
+        //mSocket.on(SERVER_SEND_CONVERSATIONS, onListen_Conversations);
+        //mSocket.on(SERVER_SEND_FRIENDS, onListen_Friends);
         mSocket.on(SERVER_UPDATE_STATE_TO_OTHERS, onListen_UpdateStateToOthers);
         mSocket.on(SERVER_UPDATE_FRIENDS_ONLINE, onListen_UpdateFriendsOnline);
     }
@@ -117,12 +114,12 @@ public class UserActivity extends AppCompatActivity {
         tabHost.addTab(tab2);
 
         lvConversations = (ListView) findViewById(R.id.lvConversations);
-        listConversations =new ArrayList<>();
+        listConversations = ListConversations.getInstance().getArray();
         adapterConversations =new ConversationAdapter(this,R.layout.conversation, listConversations);
         lvConversations.setAdapter(adapterConversations);
 
         lvFriends = (ListView) findViewById(R.id.lvFriends);
-        listFriends = new ArrayList<>();
+        listFriends = ListFriends.getInstance().getArray();
         adapterFriends = new FriendAdapter(this, R.layout.friend, listFriends);
         lvFriends.setAdapter(adapterFriends);
     }
@@ -156,7 +153,7 @@ public class UserActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
-    private Emitter.Listener onListen_Conversations = new Emitter.Listener() {
+ /*   private Emitter.Listener onListen_Conversations = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
             runOnUiThread(new Runnable() {
@@ -183,9 +180,9 @@ public class UserActivity extends AppCompatActivity {
                 }
             });
         }
-    };
+    };*/
 
-    private Emitter.Listener onListen_Friends = new Emitter.Listener() {
+/*    private Emitter.Listener onListen_Friends = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
             runOnUiThread(new Runnable() {
@@ -211,7 +208,7 @@ public class UserActivity extends AppCompatActivity {
                 }
             });
         }
-    };
+    };*/
 
     private Emitter.Listener onListen_UpdateStateToOthers = new Emitter.Listener() {
         @Override
@@ -223,8 +220,8 @@ public class UserActivity extends AppCompatActivity {
                     String userEmail;
                     String state;
                     try {
-                        userEmail = data.getString(USER_EMAIL);
-                        state = data.getString(USER_STATE);
+                        userEmail = data.getString(EMAIL);
+                        state = data.getString(STATE);
                         if (state.equals("online")) {
                             for(int i = 0; i < listFriends.size(); i++){
                                 if (listFriends.get(i).getEmail().equals(userEmail)){
