@@ -16,24 +16,24 @@ public class ListConversations {   //
     }
 
     //
-    private ArrayList<Friend> array;
+    private ArrayList<Conversation> array;
 
     public ListConversations(){
-        array = new ArrayList<Friend>();
+        array = new ArrayList<Conversation>();
     }
 
-    public ListConversations(ArrayList listF){
-        array = new ArrayList<Friend>();
-        array.addAll(listF);
+    public ListConversations(ArrayList list){
+        array = new ArrayList<Conversation>();
+        array.addAll(list);
     }
 
-    public ArrayList<Friend> getArray(){return array;}
+    public ArrayList<Conversation> getArray(){return array;}
 
-    public void add(Friend friend){
-        array.add(friend);
+    public void add(Conversation con){
+        array.add(con);
     }
 
-    public void remove(Friend friend){
-        array.remove(friend);
+    public void remove(Conversation con){
+        array.remove(con);
     }
 }

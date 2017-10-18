@@ -19,6 +19,7 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import com.example.remembergroup.chat_app.R;
+import com.example.remembergroup.model.Conversation;
 import com.example.remembergroup.model.Friend;
 
 import java.text.SimpleDateFormat;
@@ -29,16 +30,16 @@ import java.util.List;
  * Created by chauvansang on 9/21/2017.
  */
 
-public class ConversationAdapter extends ArrayAdapter<Friend>  {
+public class ConversationAdapter extends ArrayAdapter<Conversation>  {
     @NonNull
     private Activity context;
     @LayoutRes
     private int resource;
     @NonNull
-    private List<Friend> objects;
+    private List<Conversation> objects;
 
-    private List<Friend> filterData;
-    public ConversationAdapter(@NonNull Activity context, @LayoutRes int resource, @NonNull List<Friend> objects) {
+    private List<Conversation> filterData;
+    public ConversationAdapter(@NonNull Activity context, @LayoutRes int resource, @NonNull List<Conversation> objects) {
         super(context, resource, objects);
         this.filterData=objects;
         this.context=context;
@@ -64,14 +65,14 @@ public class ConversationAdapter extends ArrayAdapter<Friend>  {
         ImageView imgImage=row.findViewById(R.id.imgImage);
         Button btnMenu=row.findViewById(R.id.btnMenu);
 
-        Friend friend=filterData.get(position);
+        Conversation con=filterData.get(position);
 
         //set values to each controls
-        txtName.setText(friend.getName());
+        txtName.setText(con.getFriend().getName());
 
-        if(friend.getAvatar()!=null)
-            imgImage.setImageBitmap(friend.getAvatar());
-        if(friend.isOnline())
+        if(con.getFriend().getAvatar()!=null)
+            imgImage.setImageBitmap(con.getFriend().getAvatar());
+        if(con.getFriend().isOnline())
             imgOnline.setVisibility(View.VISIBLE);
         else
             imgOnline.setVisibility(View.INVISIBLE);
@@ -111,7 +112,7 @@ public class ConversationAdapter extends ArrayAdapter<Friend>  {
 
     @Nullable
     @Override
-    public Friend getItem(int position) {
+    public Conversation getItem(int position) {
         return filterData.get(position);
     }
 
@@ -124,26 +125,26 @@ public class ConversationAdapter extends ArrayAdapter<Friend>  {
                 String filterString = constraint.toString().toLowerCase();
 
 
-                ArrayList<Friend> friends=new ArrayList<>();
-                Friend temp;
+                ArrayList<Conversation> cons=new ArrayList<>();
+                Conversation temp;
                 final FilterResults result = new FilterResults();
                 for(int i=0;i<objects.size();i++)
                 {
                     temp=objects.get(i);
-                    if(temp.getName().toLowerCase().contains(filterString))
+                    if(temp.getFriend().getName().toLowerCase().contains(filterString))
                     {
-                        friends.add(objects.get(i));
+                        cons.add(objects.get(i));
                     }
                 }
-                result.count=friends.size();
-                result.values=friends;
+                result.count=cons.size();
+                result.values=cons;
                 return result;
             }
 
 
             @Override
             protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
-                    filterData= (List<Friend>) filterResults.values;
+                    filterData= (List<Conversation>) filterResults.values;
                     notifyDataSetChanged();
             }
         };

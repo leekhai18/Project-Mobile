@@ -6,6 +6,7 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -18,6 +19,7 @@ import android.widget.TabHost;
 
 import com.example.remembergroup.adapter.ConversationAdapter;
 import com.example.remembergroup.adapter.FriendAdapter;
+import com.example.remembergroup.model.Conversation;
 import com.example.remembergroup.model.Friend;
 import com.example.remembergroup.model.ListConversations;
 import com.example.remembergroup.model.ListFriends;
@@ -40,14 +42,14 @@ public class UserActivity extends AppCompatActivity {
     private  final String STATE = "STATE";
     private  final String EMAIL = "EMAIL";
     private  final String SERVER_UPDATE_FRIENDS_ONLINE = "SERVER_UPDATE_FRIENDS_ONLINE";
-    private  final String MEM_ROOM = "MEM_ROOM";
+    private  final String CON_CHAT = "CON_CHAT";
     private  final String SERVER_SEND_DATA_ME = "SERVER_SEND_DATA_ME";
 
 
     private Socket mSocket;
     TabHost tabHost;
     ListView lvConversations;
-    ArrayList<Friend> listConversations;
+    ArrayList<Conversation> listConversations;
     ConversationAdapter adapterConversations;
     ImageButton btnChat,btnProfile,btnSetting;
     ListView lvFriends;
@@ -83,14 +85,20 @@ public class UserActivity extends AppCompatActivity {
         lvConversations.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                launchChatRoom(MEM_ROOM, listConversations.get(i));
+                launchChatRoom(CON_CHAT, listConversations.get(i));
             }
         });
 
         lvFriends.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                launchChatRoom(MEM_ROOM, listFriends.get(i));
+                for (int j = 0; j < listConversations.size(); j++){
+                    if (listConversations.get(j).getFriend().getEmail().equals(listFriends.get(i))){
+                        launchChatRoom(CON_CHAT, listConversations.get(j));
+                    }
+                }
+
+                launchChatRoom(CON_CHAT, new Conversation("0", listFriends.get(i)));
             }
         });
 
@@ -125,9 +133,9 @@ public class UserActivity extends AppCompatActivity {
     }
 
     // Launch chatRoom activity
-    private void launchChatRoom(String key, Friend friend){
+    private void launchChatRoom(String key, Conversation cons){
         Intent i = new Intent(this, ChatActivity.class);
-        i.putExtra(key, friend);
+        i.putExtra(key, cons);
         startActivity(i);
     }
 
@@ -230,8 +238,8 @@ public class UserActivity extends AppCompatActivity {
                             }
 
                             for(int i = 0; i < listConversations.size(); i++){
-                                if (listConversations.get(i).getEmail().equals(userEmail)){
-                                    listConversations.get(i).setOnline(true);
+                                if (listConversations.get(i).getFriend().getEmail().equals(userEmail)){
+                                    listConversations.get(i).getFriend().setOnline(true);
                                 }
                             }
                         } else {
@@ -242,8 +250,8 @@ public class UserActivity extends AppCompatActivity {
                             }
 
                             for(int i = 0; i < listConversations.size(); i++){
-                                if (listConversations.get(i).getEmail().equals(userEmail)){
-                                    listConversations.get(i).setOnline(false);
+                                if (listConversations.get(i).getFriend().getEmail().equals(userEmail)){
+                                    listConversations.get(i).getFriend().setOnline(false);
                                 }
                             }
                         }
@@ -277,8 +285,8 @@ public class UserActivity extends AppCompatActivity {
                                 }
 
                                 for(int j = 0; j < listConversations.size(); j++){
-                                    if (listConversations.get(j).getEmail().equals(array.getString(i))){
-                                        listConversations.get(j).setOnline(true);
+                                    if (listConversations.get(j).getFriend().getEmail().equals(array.getString(i))){
+                                        listConversations.get(j).getFriend().setOnline(true);
                                     }
                                 }
                             }

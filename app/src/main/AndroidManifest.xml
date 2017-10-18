@@ -23,17 +23,17 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity" android:launchMode="standard">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ProfileActivity" />
-        <activity android:name=".ChatActivity"/>
-        <activity android:name=".UserActivity"/>
-        <activity android:name=".RegisterActivity"/>
+        <activity android:name=".ProfileActivity" android:launchMode="singleTop"/>
+        <activity android:name=".ChatActivity" android:launchMode="standard"/>
+        <activity android:name=".UserActivity" android:launchMode="singleTop"/>
+        <activity android:name=".RegisterActivity" android:launchMode="standard"/>
     </application>
 
 </manifest>

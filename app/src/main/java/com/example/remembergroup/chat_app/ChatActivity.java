@@ -17,8 +17,10 @@ import android.widget.TextView;
 
 import com.example.remembergroup.adapter.ChatAdapter;
 import com.example.remembergroup.model.Constant;
+import com.example.remembergroup.model.Conversation;
 import com.example.remembergroup.model.Friend;
 import com.example.remembergroup.model.ImageMessage;
+import com.example.remembergroup.model.ListConversations;
 import com.example.remembergroup.model.Message;
 import com.example.remembergroup.model.Me;
 import com.example.remembergroup.model.TextMessage;
@@ -38,7 +40,7 @@ public class ChatActivity extends AppCompatActivity {
     private final String SERVER_SEND_MESSAGE = "SERVER_SEND_MESSAGE";
     private final String MESSAGE = "MESSAGE";
     private final String SENDER = "SENDER";
-    private  final String MEM_ROOM = "MEM_ROOM";
+    private  final String CON_CHAT = "CON_CHAT";
 
     private Socket mSocket;
 
@@ -49,6 +51,7 @@ public class ChatActivity extends AppCompatActivity {
     ImageButton btnSend,btnImage,btnEmotion,btnCamera;
     EditText txtMessage;
     TextView txt;
+    Conversation conversation;
 
 
     @Override
@@ -96,9 +99,10 @@ public class ChatActivity extends AppCompatActivity {
 
     private void initFriend() {
         Intent intent = this.getIntent();
-        Friend friendChatWith = (Friend) intent.getParcelableExtra(MEM_ROOM);
-        if (friendChatWith != null) {
-            setFriend(friendChatWith);
+        conversation = (Conversation) intent.getParcelableExtra(CON_CHAT);
+
+        if (conversation != null) {
+            setFriend(conversation.getFriend());
         }
     }
 
@@ -130,6 +134,7 @@ public class ChatActivity extends AppCompatActivity {
         super.onBackPressed();
         Intent i = new Intent(this, UserActivity.class);
         startActivity(i);
+        this.finish();
     }
 
     //TO DO: get image from camera
@@ -154,6 +159,18 @@ public class ChatActivity extends AppCompatActivity {
         org.json.simple.JSONObject  obj = new org.json.simple.JSONObject();
         obj.put("message", txtMessage.getText().toString());
         obj.put("receiver", friendChat.getEmail());
+        if (conversation.getId().equals("0")){
+            String idString = conversation.getFriend().getEmail() + Me.getInstance().getEmail();
+            int idInt = 0;
+            for (int i = 0; i < idString.length(); i++){
+                idInt += idString.codePointAt(i);
+            }
+
+            conversation.setId(String.valueOf(idInt));
+            ListConversations.getInstance().add(conversation);
+        }
+        obj.put("idConversation", conversation.getId());
+
         mSocket.emit(CLIENT_SEND_MESSAGE, obj);
     }
 
