@@ -40,6 +40,7 @@ public class ChatActivity extends AppCompatActivity {
     private final String SERVER_SEND_MESSAGE = "SERVER_SEND_MESSAGE";
     private final String MESSAGE = "MESSAGE";
     private final String SENDER = "SENDER";
+    private final String ROOM = "ROOM";
     private  final String CON_CHAT = "CON_CHAT";
 
     private Socket mSocket;
@@ -159,15 +160,17 @@ public class ChatActivity extends AppCompatActivity {
         org.json.simple.JSONObject  obj = new org.json.simple.JSONObject();
         obj.put("message", txtMessage.getText().toString());
         obj.put("receiver", friendChat.getEmail());
-        if (conversation.getId().equals("0")){
-            String idString = conversation.getFriend().getEmail() + Me.getInstance().getEmail();
-            int idInt = 0;
-            for (int i = 0; i < idString.length(); i++){
-                idInt += idString.codePointAt(i);
+        if (! this.getIntent().getBooleanExtra("isExist", false)){
+            boolean flag = false;
+            for (int i = 0; i < ListConversations.getInstance().getArray().size(); i++){
+                if (ListConversations.getInstance().getArray().get(i).getId().equals(conversation.getId())){
+                    flag = true;
+                }
             }
 
-            conversation.setId(String.valueOf(idInt));
-            ListConversations.getInstance().add(conversation);
+            if (flag == false) {
+                ListConversations.getInstance().getArray().add(0, conversation);
+            }
         }
         obj.put("idConversation", conversation.getId());
 
@@ -209,13 +212,15 @@ public class ChatActivity extends AppCompatActivity {
                 public void run() {
                     JSONObject data = (JSONObject) args[0];
                     String message;
-                    String sender;
+                    String idRoom;
                     try {
                         message = data.getString(MESSAGE);
-                        sender = data.getString(SENDER);
-                        messageArrayList.add(new TextMessage(message, false));
-                        chatAdapter.notifyDataSetChanged();
-                        scrollMyListViewToBottom();
+                        idRoom = data.getString(ROOM);
+                        if (idRoom.equals(conversation.getId())){
+                            messageArrayList.add(new TextMessage(message, false));
+                            chatAdapter.notifyDataSetChanged();
+                            scrollMyListViewToBottom();
+                        }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }

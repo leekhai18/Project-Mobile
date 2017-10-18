@@ -11,6 +11,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -23,12 +24,14 @@ import com.example.remembergroup.model.Conversation;
 import com.example.remembergroup.model.Friend;
 import com.example.remembergroup.model.ListConversations;
 import com.example.remembergroup.model.ListFriends;
+import com.example.remembergroup.model.Me;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -41,9 +44,10 @@ public class UserActivity extends AppCompatActivity {
     private  final String SERVER_UPDATE_STATE_TO_OTHERS = "SERVER_UPDATE_STATE_TO_OTHERS";
     private  final String STATE = "STATE";
     private  final String EMAIL = "EMAIL";
+    private  final String ID = "ID";
     private  final String SERVER_UPDATE_FRIENDS_ONLINE = "SERVER_UPDATE_FRIENDS_ONLINE";
     private  final String CON_CHAT = "CON_CHAT";
-    private  final String SERVER_SEND_DATA_ME = "SERVER_SEND_DATA_ME";
+    private  final String SERVER_SEND_NEW_CONVERSATION = "SERVER_SEND_NEW_CONVERSATION";
 
 
     private Socket mSocket;
@@ -71,6 +75,13 @@ public class UserActivity extends AppCompatActivity {
         addEvents();
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        adapterConversations.notifyDataSetChanged();
+        adapterFriends.notifyDataSetChanged();
+    }
+
     private void initSocket() {
         mSocket = SingletonSocket.getInstance().mSocket;
 
@@ -78,6 +89,7 @@ public class UserActivity extends AppCompatActivity {
         //mSocket.on(SERVER_SEND_FRIENDS, onListen_Friends);
         mSocket.on(SERVER_UPDATE_STATE_TO_OTHERS, onListen_UpdateStateToOthers);
         mSocket.on(SERVER_UPDATE_FRIENDS_ONLINE, onListen_UpdateFriendsOnline);
+        mSocket.on(SERVER_SEND_NEW_CONVERSATION, onListen_NewConversation);
     }
 
     //TO DO: add events
@@ -85,20 +97,31 @@ public class UserActivity extends AppCompatActivity {
         lvConversations.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                launchChatRoom(CON_CHAT, listConversations.get(i));
+                launchChatRoom(CON_CHAT, listConversations.get(i), true);
             }
         });
 
         lvFriends.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                for (int j = 0; j < listConversations.size(); j++){
-                    if (listConversations.get(j).getFriend().getEmail().equals(listFriends.get(i))){
-                        launchChatRoom(CON_CHAT, listConversations.get(j));
+                boolean flag = false;
+
+                for (int j = 0; j < ListConversations.getInstance().getArray().size(); j++){
+                    if (ListConversations.getInstance().getArray().get(j).getFriend().getEmail().equals(listFriends.get(i))){
+                        flag = true;
+                        launchChatRoom(CON_CHAT, ListConversations.getInstance().getArray().get(j), true);
                     }
                 }
 
-                launchChatRoom(CON_CHAT, new Conversation("0", listFriends.get(i)));
+                if (flag == false) {
+                    String idString = listFriends.get(i).getEmail() + Me.getInstance().getEmail();
+                    int idInt = 0;
+                    for (int j = 0; j < idString.length(); j++){
+                        idInt += idString.codePointAt(j);
+                    }
+
+                    launchChatRoom(CON_CHAT, new Conversation(String.valueOf(idInt), listFriends.get(i)), false);
+                }
             }
         });
 
@@ -133,9 +156,10 @@ public class UserActivity extends AppCompatActivity {
     }
 
     // Launch chatRoom activity
-    private void launchChatRoom(String key, Conversation cons){
+    private void launchChatRoom(String key, Conversation cons, boolean isExist){
         Intent i = new Intent(this, ChatActivity.class);
         i.putExtra(key, cons);
+        i.putExtra("isExist", isExist);
         startActivity(i);
     }
 
@@ -218,6 +242,34 @@ public class UserActivity extends AppCompatActivity {
         }
     };*/
 
+
+    private Emitter.Listener onListen_NewConversation = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    JSONObject data = (JSONObject) args[0];
+                    String email;
+                    String id;
+                    try {
+                        email = data.getString(EMAIL);
+                        id = data.getString(ID);
+                        for(int i = 0; i < listFriends.size(); i++){
+                            if (listFriends.get(i).getEmail().equals(email)){
+                                listConversations.add(0, new Conversation(id, listFriends.get(i)));
+                            }
+                        }
+
+                        adapterConversations.notifyDataSetChanged();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    };
+
     private Emitter.Listener onListen_UpdateStateToOthers = new Emitter.Listener() {
         @Override
         public void call(final Object...args) {
@@ -234,6 +286,9 @@ public class UserActivity extends AppCompatActivity {
                             for(int i = 0; i < listFriends.size(); i++){
                                 if (listFriends.get(i).getEmail().equals(userEmail)){
                                     listFriends.get(i).setOnline(true);
+                                    if (i != 0) {
+                                        Collections.swap(listFriends, 0, i);
+                                    }
                                 }
                             }
 
@@ -246,6 +301,9 @@ public class UserActivity extends AppCompatActivity {
                             for(int i = 0; i < listFriends.size(); i++){
                                 if (listFriends.get(i).getEmail().equals(userEmail)){
                                     listFriends.get(i).setOnline(false);
+                                    if (i != listFriends.size() - 1) {
+                                        Collections.swap(listFriends, listFriends.size() - 1, i);
+                                    }
                                 }
                             }
 
@@ -281,6 +339,9 @@ public class UserActivity extends AppCompatActivity {
                                 for(int j = 0; j < listFriends.size(); j++){
                                     if (listFriends.get(j).getEmail().equals(array.getString(i))){
                                         listFriends.get(j).setOnline(true);
+                                        if (j != 0) {
+                                            Collections.swap(listFriends, 0, j);
+                                        }
                                     }
                                 }
 
