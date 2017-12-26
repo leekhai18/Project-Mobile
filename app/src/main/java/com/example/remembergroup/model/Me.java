@@ -4,9 +4,22 @@ import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.ArrayList;
+
 
 public class Me extends User {
     private static Me instance;
+
+    // list add friend request
+    private ArrayList<Friend> listAddFriendRequest;
+
+    void addRequest(Friend f){
+        listAddFriendRequest.add(f);
+    }
+
+    ArrayList<Friend> getListRequest(){
+        return listAddFriendRequest;
+    }
 
     public static Me getInstance() {
         if(instance == null)

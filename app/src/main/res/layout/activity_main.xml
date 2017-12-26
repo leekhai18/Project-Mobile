@@ -4,88 +4,104 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/khaibackgroud"
     android:orientation="vertical"
-    android:weightSum="1"
     tools:context="com.example.remembergroup.chat_app.MainActivity">
 
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/imageView"
-        android:layout_width="128dp"
-        android:layout_height="128dp"
-        android:layout_gravity="center_horizontal|center_vertical"
-        android:layout_marginTop="30dp"
-        android:src="@drawable/icon"
-        tools:ignore="ContentDescription" />
-
-    <EditText
-        android:id="@+id/txtEmail"
-        android:layout_width="300dp"
-        android:layout_height="30dp"
-        android:layout_gravity="center"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginTop="25dp"
-        android:background="@drawable/roundrect_editext"
-        android:hint="Enter your email"
-        android:inputType="textEmailAddress"
-        android:textAlignment="center"
-        tools:ignore="TextFields" />
-
-    <EditText
-        android:id="@+id/txtPassword"
-        android:layout_gravity="center"
-        android:layout_width="300dp"
-        android:layout_height="30dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/roundrect_editext"
-        android:hint="Enter your password"
-        android:inputType="textPassword"
-        android:textAlignment="center"
-        tools:ignore="TextFields" />
-
-    <Button
-        android:id="@+id/btnSignIn"
-        android:layout_gravity="center"
-        android:layout_width="300dp"
-        android:layout_height="30dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/round_button"
-        android:text="Sign in"
-        android:textColor="@color/white" />
-
-    <Button
-
-        android:id="@+id/btnSignUp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:background="@color/transparent"
-        android:text="Not a member? Sign up now"
-        android:textSize="11dp"
-        android:alpha="0.5" />
-
-    <com.facebook.login.widget.LoginButton
-        android:id="@+id/btnLoginFB"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="30dp"
-        android:layout_marginTop="30dp"
-        android:text="Sign in with facebook"
-        android:textSize="20dp" />
-
-    <Button
-        android:id="@+id/btnForgotPassword"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="30dp"
-        android:layout_marginTop="40dp"
-        android:background="@color/transparent"
-        android:inputType="text"
-        android:text="Forgot your password?"
-        android:textAlignment="center" />
+        android:layout_height="60dp"
+        android:background="#FF4081">
+
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/person"
+            android:layout_margin="5dp"
+            android:id="@+id/imgMe"/>
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginLeft="15dp"
+            android:id="@+id/imgAddFriend"
+            android:src="@drawable/add_friend"/>
+
+        <android.support.v7.widget.SearchView
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:id="@+id/searchTool"
+            android:layout_marginTop="5dp">
+
+        </android.support.v7.widget.SearchView>
+
+    </LinearLayout>
+
+    <TabHost
+        android:id="@+id/tabHost"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="9">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TabWidget
+                android:id="@android:id/tabs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <FrameLayout
+                android:id="@android:id/tabcontent"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <LinearLayout
+                    android:id="@+id/tab1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <Space
+                        android:layout_width="match_parent"
+                        android:layout_height="20dp" />
+
+                    <ListView
+                        android:id="@+id/lvConversations"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:divider="@color/transparent"
+                        android:dividerHeight="10.0sp"
+                        android:layout_marginRight="5dp"
+                        android:layout_marginLeft="5dp"
+                        />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/tab2"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <Space
+                        android:layout_width="match_parent"
+                        android:layout_height="20dp" />
+
+                    <ListView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:id="@+id/lvFriends"
+                        android:dividerHeight="5.0sp"
+                        android:divider="@color/transparent"
+                        android:layout_marginRight="5dp"
+                        android:layout_marginLeft="5dp"
+                        >
+                    </ListView>
+
+                </LinearLayout>
+            </FrameLayout>
+        </LinearLayout>
+    </TabHost>
 </LinearLayout>

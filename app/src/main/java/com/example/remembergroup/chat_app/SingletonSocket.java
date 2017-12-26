@@ -30,9 +30,6 @@ public class SingletonSocket {
 
     private final String SERVER_SEND_CONVERSATIONS = "SERVER_SEND_CONVERSATIONS";
     private final String SERVER_SEND_FRIENDS = "SERVER_SEND_FRIENDS";
-    private  final String SERVER_UPDATE_STATE_TO_OTHERS = "SERVER_UPDATE_STATE_TO_OTHERS";
-
-    private  final String SERVER_UPDATE_FRIENDS_ONLINE = "SERVER_UPDATE_FRIENDS_ONLINE";
     private  final String MEM_ROOM = "MEM_ROOM";
     private  final String SERVER_SEND_DATA_ME = "SERVER_SEND_DATA_ME";
     private  final String NAME = "NAME";
@@ -40,6 +37,9 @@ public class SingletonSocket {
     private  final String AVARTAR = "AVARTAR";
     private  final String STATE = "STATE";
     private  final String ID = "ID";
+
+
+    // Listen request friend here
 
     // instance
     private static SingletonSocket INSTANCE = new SingletonSocket();
@@ -65,8 +65,7 @@ public class SingletonSocket {
         mSocket.on(SERVER_SEND_DATA_ME, onListen_MyData);
         mSocket.on(SERVER_SEND_CONVERSATIONS, onListen_Conversations);
         mSocket.on(SERVER_SEND_FRIENDS, onListen_Friends);
-        //mSocket.on(SERVER_UPDATE_STATE_TO_OTHERS, onListen_UpdateStateToOthers);
-        //mSocket.on(SERVER_UPDATE_FRIENDS_ONLINE, onListen_UpdateFriendsOnline);
+
     }
 
     private Emitter.Listener onListen_MyData = new Emitter.Listener() {
@@ -76,6 +75,9 @@ public class SingletonSocket {
             try {
                 Me.getInstance().setEmail(data.getString(EMAIL));
                 Me.getInstance().setName(data.getString(NAME));
+
+                // Need add avatar in here
+
             } catch (JSONException e) {
                 e.printStackTrace();
             }

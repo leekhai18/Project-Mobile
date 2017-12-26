@@ -5,7 +5,7 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.remembergroup.chat_app.ProfileActivity">
+    tools:context="com.example.remembergroup.chat_app.ProfileMeActivity">
     <ImageView
         android:layout_width="128dp"
         android:layout_height="128dp"

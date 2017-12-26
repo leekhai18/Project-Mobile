@@ -4,10 +4,6 @@ import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.io.NotSerializableException;
-
 
 public class Friend extends User {
     private boolean isOnline = false;

@@ -71,6 +71,14 @@ public class RegisterActivity extends Activity {
         });
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent i = new Intent(this, LoginActivity.class);
+        startActivity(i);
+        this.finish();
+    }
+
     private void sendInfoRegister() {
         String username = inputFullName.getText().toString().trim();
         String email = inputEmail.getText().toString().trim();
@@ -108,7 +116,7 @@ public class RegisterActivity extends Activity {
     // Launch login activity
     private void launchLogin(){
         Intent i = new Intent(getApplicationContext(),
-                MainActivity.class);
+                LoginActivity.class);
         startActivity(i);
         finish();
     }

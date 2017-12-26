@@ -1,189 +1,378 @@
 package com.example.remembergroup.chat_app;
 
-import android.app.ProgressDialog;
+import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.Signature;
-import android.support.v7.app.AppCompatActivity;
+
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.os.Bundle;
-import android.util.Base64;
-import android.util.Log;
+import android.support.v7.widget.SearchView;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
+import android.view.Window;
+import android.widget.AdapterView;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TabHost;
 
+import com.example.remembergroup.adapter.ConversationAdapter;
+import com.example.remembergroup.adapter.FriendAdapter;
+import com.example.remembergroup.model.Conversation;
+import com.example.remembergroup.model.Friend;
+import com.example.remembergroup.model.ListConversations;
 import com.example.remembergroup.model.ListFriends;
-import com.facebook.CallbackManager;
-import com.facebook.FacebookCallback;
-import com.facebook.FacebookException;
-import com.facebook.login.LoginResult;
-import com.facebook.login.widget.LoginButton;
+import com.example.remembergroup.model.Me;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONArray;
+
+import java.util.ArrayList;
+import java.util.Collections;
 
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
-public class MainActivity extends AppCompatActivity  {
-    private final String SERVER_RE_LOGIN = "SERVER_RE_LOGIN";
-    private final String CLIENT_LOGIN = "CLIENT_LOGIN";
+public class MainActivity extends Activity {
+
+    private final String SERVER_SEND_CONVERSATIONS = "SERVER_SEND_CONVERSATIONS";
+    private final String SERVER_SEND_FRIENDS = "SERVER_SEND_FRIENDS";
     private final String CLIENT_REQUEST_DATA = "CLIENT_REQUEST_DATA";
+    private  final String SERVER_UPDATE_STATE_TO_OTHERS = "SERVER_UPDATE_STATE_TO_OTHERS";
+    private  final String STATE = "STATE";
+    private  final String EMAIL = "EMAIL";
+    private  final String ID = "ID";
+    private  final String SERVER_UPDATE_FRIENDS_ONLINE = "SERVER_UPDATE_FRIENDS_ONLINE";
+    private  final String CON_CHAT = "CON_CHAT";
+    private  final String SERVER_SEND_NEW_CONVERSATION = "SERVER_SEND_NEW_CONVERSATION";
 
 
     private Socket mSocket;
-    private ProgressDialog pDialog;
-    EditText txtEmail,txtPassword;
-    Button btnSignIn,btnForgotPassword,btnSignUp;
-    LoginButton btnLoginFB;
-    CallbackManager callbackManager;
+    TabHost tabHost;
+    ListView lvConversations;
+    ArrayList<Conversation> listConversations;
+    ConversationAdapter adapterConversations;
+    ImageButton btnChat,btnProfile,btnSetting;
+    ListView lvFriends;
+    ArrayList<Friend> listFriends;
+    FriendAdapter adapterFriends;
+    SearchView searchTool;
+    ImageView imgMe;
+    ImageView imgAddFriend;
+
+
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        try {
-            PackageInfo info = getPackageManager().getPackageInfo(
-                    "com.example.remembergroup.chat_app",
-                    PackageManager.GET_SIGNATURES);
-            for (Signature signature : info.signatures) {
-                MessageDigest md = MessageDigest.getInstance("SHA");
-                md.update(signature.toByteArray());
-                Log.d("KeyHash:", Base64.encodeToString(md.digest(), Base64.DEFAULT));
-            }
-        } catch (PackageManager.NameNotFoundException e) {
-        } catch (NoSuchAlgorithmException e) {
-        }
 
-        callbackManager = CallbackManager.Factory.create();
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
-        addControls();
-        addEvents();
+
         initSocket();
+
+        addControls();
+
+        addEvents();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        adapterConversations.notifyDataSetChanged();
+        adapterFriends.notifyDataSetChanged();
     }
 
     private void initSocket() {
         mSocket = SingletonSocket.getInstance().mSocket;
-        mSocket.on(SERVER_RE_LOGIN, onLogin);
-        SingletonSocket.getInstance().ListeningToGetData();
 
-        //mSocket.connect();
-        if (! mSocket.connected()) {
-            mSocket.connect();
-        }
+        //mSocket.on(SERVER_SEND_CONVERSATIONS, onListen_Conversations);
+        //mSocket.on(SERVER_SEND_FRIENDS, onListen_Friends);
+        mSocket.on(SERVER_UPDATE_STATE_TO_OTHERS, onListen_UpdateStateToOthers);
+        mSocket.on(SERVER_UPDATE_FRIENDS_ONLINE, onListen_UpdateFriendsOnline);
+        mSocket.on(SERVER_SEND_NEW_CONVERSATION, onListen_NewConversation);
     }
 
-    private void addControls() {
-
-        txtEmail= (EditText) findViewById(R.id.txtEmail);
-        txtPassword= (EditText) findViewById(R.id.txtPassword);
-        btnLoginFB= (LoginButton) findViewById(R.id.btnLoginFB);
-        btnForgotPassword= (Button) findViewById(R.id.btnForgotPassword);
-        btnSignIn= (Button) findViewById(R.id.btnSignIn);
-        btnSignUp= (Button) findViewById(R.id.btnSignUp);
-
-        // Progress dialog
-        pDialog = new ProgressDialog(this);
-    }
-
+    //TO DO: add events
     private void addEvents() {
-        btnLoginFB.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+        lvConversations.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onSuccess(LoginResult loginResult) {
-                Toast.makeText(MainActivity.this,"Login sucess",Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void onCancel() {
-                Toast.makeText(MainActivity.this,"Login cancel",Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void onError(FacebookException error) {
-                Toast.makeText(MainActivity.this,"Login failed",Toast.LENGTH_LONG).show();
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                launchChatRoom(CON_CHAT, listConversations.get(i), true);
             }
         });
 
-
-        btnSignIn.setOnClickListener(new View.OnClickListener() {
+        lvFriends.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onClick(View view) {
-                String email = txtEmail.getText().toString().trim();
-                String password = txtPassword.getText().toString().trim();
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                boolean flag = false;
 
-                // Check for empty data in the form
-                if (!email.isEmpty() && !password.isEmpty()) {
-                    // login user
-                    checkLogin(email, password);
-                } else {
-                    // Prompt user to enter credentials
-                    Toast.makeText(getApplicationContext(), "Please enter the credentials!", Toast.LENGTH_LONG).show();
+                for (int j = 0; j < ListConversations.getInstance().getArray().size(); j++){
+                    if (ListConversations.getInstance().getArray().get(j).getFriend().getEmail().equals(listFriends.get(i))){
+                        flag = true;
+                        launchChatRoom(CON_CHAT, ListConversations.getInstance().getArray().get(j), true);
+                    }
+                }
+
+                if (flag == false) {
+                    String idString = listFriends.get(i).getEmail() + Me.getInstance().getEmail();
+                    int idInt = 0;
+                    for (int j = 0; j < idString.length(); j++){
+                        idInt += idString.codePointAt(j);
+                    }
+
+                    launchChatRoom(CON_CHAT, new Conversation(String.valueOf(idInt), listFriends.get(i)), false);
                 }
             }
         });
 
-        btnSignUp.setOnClickListener(new View.OnClickListener() {
+
+        searchTool.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                adapterConversations.getFilter().filter(newText);
+                adapterFriends.getFilter().filter(newText);
+                return false;
+            }
+        });
+
+        imgAddFriend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent i = new Intent(getApplicationContext(),
-                        RegisterActivity.class);
+                Intent i = new Intent(getApplicationContext(), AddFriendActivity.class);
                 startActivity(i);
-                finish();
             }
         });
-        btnForgotPassword.setOnClickListener(new View.OnClickListener() {
+
+        imgMe.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                Intent i = new Intent(getApplicationContext(), ProfileMeActivity.class);
+                startActivity(i);
             }
         });
-
     }
 
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        callbackManager.onActivityResult(requestCode, resultCode, data);
+    //TO DO: setting user interface
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    private void addControls() {
+        //Generate tab
+        tabHost= (TabHost) findViewById(R.id.tabHost);
+        tabHost.setup();
+        TabHost.TabSpec tab1=tabHost.newTabSpec("t1");
+        tab1.setIndicator("Conversations");
+        tab1.setContent(R.id.tab1);
+        tabHost.addTab(tab1);
+
+        TabHost.TabSpec tab2=tabHost.newTabSpec("t2");
+        tab2.setIndicator("Friends");
+        tab2.setContent(R.id.tab2);
+        tabHost.addTab(tab2);
+
+        lvConversations = (ListView) findViewById(R.id.lvConversations);
+        listConversations = ListConversations.getInstance().getArray();
+        adapterConversations =new ConversationAdapter(this,R.layout.conversation, listConversations);
+        lvConversations.setAdapter(adapterConversations);
+
+        lvFriends = (ListView) findViewById(R.id.lvFriends);
+        listFriends = ListFriends.getInstance().getArray();
+        adapterFriends = new FriendAdapter(this, R.layout.friend, listFriends);
+        lvFriends.setAdapter(adapterFriends);
+
+        searchTool = findViewById(R.id.searchTool);
+        imgAddFriend = findViewById(R.id.imgAddFriend);
+        imgMe = findViewById(R.id.imgMe);
+        //imgMe.setImageBitmap(Me.getInstance().getAvatar());
     }
 
-    private void checkLogin(final String email, final String password) {
-        // Tag used to cancel the request
-
-        pDialog.setMessage("Logging in...");
-        showDialog();
-
-        mSocket.emit(CLIENT_LOGIN, email, password);
+    // Launch chatRoom activity
+    private void launchChatRoom(String key, Conversation cons, boolean isExist){
+        Intent i = new Intent(this, ChatActivity.class);
+        i.putExtra(key, cons);
+        i.putExtra("isExist", isExist);
+        startActivity(i);
     }
 
-    private void showDialog() {
-        if (!pDialog.isShowing())
-            pDialog.show();
-    }
 
-    private Emitter.Listener onLogin = new Emitter.Listener() {
+ /*   private Emitter.Listener onListen_Conversations = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    String data =  args[0].toString();
+                    JSONObject data = (JSONObject) args[0];
+                    JSONArray array;
+                    try {
+                        array = data.getJSONArray(SERVER_SEND_CONVERSATIONS);
+                        if (array != null) {
+                            for(int i = 0; i < array.length(); i++){
+                                for(int j = 0; j < listFriends.size(); j++){
+                                    if (listFriends.get(j).getEmail().equals(array.getString(i))){
+                                        listConversations.add(listFriends.get(j));
+                                    }
+                                }
+                            }
 
-                    if(data == "true"){
-                        mSocket.emit(CLIENT_REQUEST_DATA, "please send to me my data");
+                            adapterConversations.notifyDataSetChanged();
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    };*/
 
-                        Intent intent = new Intent(MainActivity.this,
-                                UserActivity.class);
-
-                        while(true){
-                            if(! ListFriends.getInstance().getArray().isEmpty()){
-                                startActivity(intent);
-                                finish();
-                                break;
+/*    private Emitter.Listener onListen_Friends = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    JSONObject data = (JSONObject) args[0];
+                    JSONArray array;
+                    try {
+                        array = data.getJSONArray(SERVER_SEND_FRIENDS);
+                        if (array != null){
+                            for(int i = 0; i < array.length(); i++){
+                                JSONObject obj = array.getJSONObject(i);
+                                listFriends.add(new Friend( obj.getString("email"),
+                                                            obj.getString("name"),
+                                                            BitmapFactory.decodeResource(getResources(), R.drawable.person),
+                                                            obj.getString("state")=="online" ? true:false));
                             }
                         }
-                    }else{
-                        Toast.makeText(getApplicationContext(), "Email or password is wrong", Toast.LENGTH_LONG).show();
+                        adapterFriends.notifyDataSetChanged();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    };*/
+
+
+    private Emitter.Listener onListen_NewConversation = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    JSONObject data = (JSONObject) args[0];
+                    String email;
+                    String id;
+                    try {
+                        email = data.getString(EMAIL);
+                        id = data.getString(ID);
+                        for(int i = 0; i < listFriends.size(); i++){
+                            if (listFriends.get(i).getEmail().equals(email)){
+                                listConversations.add(0, new Conversation(id, listFriends.get(i)));
+                            }
+                        }
+
+                        adapterConversations.notifyDataSetChanged();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    };
+
+    private Emitter.Listener onListen_UpdateStateToOthers = new Emitter.Listener() {
+        @Override
+        public void call(final Object...args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    JSONObject data = (JSONObject) args[0];
+                    String userEmail;
+                    String state;
+                    try {
+                        userEmail = data.getString(EMAIL);
+                        state = data.getString(STATE);
+                        if (state.equals("online")) {
+                            for(int i = 0; i < listFriends.size(); i++){
+                                if (listFriends.get(i).getEmail().equals(userEmail)){
+                                    listFriends.get(i).setOnline(true);
+                                    if (i != 0) {
+                                        Collections.swap(listFriends, 0, i);
+                                    }
+                                }
+                            }
+
+                            for(int i = 0; i < listConversations.size(); i++){
+                                if (listConversations.get(i).getFriend().getEmail().equals(userEmail)){
+                                    listConversations.get(i).getFriend().setOnline(true);
+                                }
+                            }
+                        } else {
+                            for(int i = 0; i < listFriends.size(); i++){
+                                if (listFriends.get(i).getEmail().equals(userEmail)){
+                                    listFriends.get(i).setOnline(false);
+                                    if (i != listFriends.size() - 1) {
+                                        Collections.swap(listFriends, listFriends.size() - 1, i);
+                                    }
+                                }
+                            }
+
+                            for(int i = 0; i < listConversations.size(); i++){
+                                if (listConversations.get(i).getFriend().getEmail().equals(userEmail)){
+                                    listConversations.get(i).getFriend().setOnline(false);
+                                }
+                            }
+                        }
+
+                        adapterConversations.notifyDataSetChanged();
+                        adapterFriends.notifyDataSetChanged();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    };
+
+    private Emitter.Listener onListen_UpdateFriendsOnline = new Emitter.Listener() {
+        @Override
+        public void call(final Object...args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    JSONObject data = (JSONObject) args[0];
+                    JSONArray array;
+                    try {
+                        array = data.getJSONArray(SERVER_UPDATE_FRIENDS_ONLINE);
+                        if (array != null) {
+                            for (int i = 0; i < array.length(); i++){
+                                for(int j = 0; j < listFriends.size(); j++){
+                                    if (listFriends.get(j).getEmail().equals(array.getString(i))){
+                                        listFriends.get(j).setOnline(true);
+                                        if (j != 0) {
+                                            Collections.swap(listFriends, 0, j);
+                                        }
+                                    }
+                                }
+
+                                for(int j = 0; j < listConversations.size(); j++){
+                                    if (listConversations.get(j).getFriend().getEmail().equals(array.getString(i))){
+                                        listConversations.get(j).getFriend().setOnline(true);
+                                    }
+                                }
+                            }
+                        }
+
+                        adapterConversations.notifyDataSetChanged();
+                        adapterFriends.notifyDataSetChanged();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
                 }
             });
