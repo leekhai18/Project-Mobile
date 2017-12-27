@@ -27,6 +27,16 @@ public class ListConversations {   //
         array.addAll(list);
     }
 
+    public Conversation getConverstaionById(String id) {
+        for (int i = 0; i < array.size(); i++){
+            if (array.get(i).getId().equals(id)){
+                return array.get(i);
+            }
+        }
+
+        return null;
+    }
+
     public ArrayList<Conversation> getArray(){return array;}
 
     public void add(Conversation con){

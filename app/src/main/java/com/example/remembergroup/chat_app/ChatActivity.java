@@ -14,6 +14,8 @@ import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -72,6 +74,8 @@ public class ChatActivity extends Activity {
     private final String SERVER_SEND_MESSAGE = "SERVER_SEND_MESSAGE";
     private final String CLIENT_REQUEST_N_LAST_MESSAGE = "CLIENT_REQUEST_N_LAST_MESSAGE";
     private final String SERVER_RES_N_LAST_MESSAGE = "SERVER_RES_N_LAST_MESSAGE";
+    private final String CLIENT_REQUES_CONTINUE_MESSAGE = "CLIENT_REQUES_CONTINUE_MESSAGE";
+    private final String SERVER_RES_CONTINUE_MESSAGE = "SERVER_RES_CONTINUE_MESSAGE";
     private final String MESSAGE = "MESSAGE";
     private final String TYPE = "TYPE";
     private final String TIME = "TIME";
@@ -83,23 +87,27 @@ public class ChatActivity extends Activity {
 
 
     private Socket mSocket;
-    Gson gson;
+    private Gson gson;
 
-    Conversation conversation;
-    ChatView chatView;
-    IUser me;
-    IUser friend;
+    private Conversation conversation;
+    private ChatView chatView;
+    private IUser me;
+    private IUser friend;
 
-    GridLayout mediaLayout;
-    LinearLayout parentLayout;
-    LinearLayout gallery;
-    LinearLayout phoneCall;
-    LinearLayout camera;
-    LinearLayout voice;
+    private GridLayout mediaLayout;
+    private LinearLayout parentLayout;
+    private LinearLayout gallery;
+    private LinearLayout phoneCall;
+    private LinearLayout camera;
+    private LinearLayout voice;
 
-    TextView txtFriendName;
-    TextView txtStatus;
+    private TextView txtFriendName;
+    private TextView txtStatus;
 
+    ArrayList<Message> listMessages;
+
+    private SwipeRefreshLayout swipeContainer;
+    private boolean canContinueRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,6 +118,7 @@ public class ChatActivity extends Activity {
         addControls();
         addEvents();
 
+        initThis();
         initFriend();
         initMine();
         initSocket();
@@ -120,6 +129,7 @@ public class ChatActivity extends Activity {
         mSocket.on(SERVER_SEND_MESSAGE, onListenServer_SendMessage);
         mSocket.emit(CLIENT_REQUEST_N_LAST_MESSAGE, conversation.getId());
         mSocket.on(SERVER_RES_N_LAST_MESSAGE, onListenServer_LastMessages);
+        mSocket.on(SERVER_RES_CONTINUE_MESSAGE, onListenServer_ContinueMessages);
     }
 
     private void addControls() {
@@ -138,6 +148,24 @@ public class ChatActivity extends Activity {
         txtStatus = findViewById(R.id.txtStatus);
 
         gson = new Gson();
+
+        listMessages = new ArrayList<Message>();
+
+        canContinueRequest = true;
+        swipeContainer = findViewById(R.id.swipeContainer);
+        swipeContainer.setDistanceToTriggerSync(50);
+        swipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
+                android.R.color.holo_green_light,
+                android.R.color.holo_orange_light,
+                android.R.color.holo_red_light);
+    }
+
+    private void initThis() {
+        Intent intent = this.getIntent();
+        conversation =  ListConversations.getInstance().getConverstaionById(((Conversation) intent.getParcelableExtra(CON_CHAT)).getId());
+        if (conversation == null){
+            conversation = (Conversation) intent.getParcelableExtra(CON_CHAT);
+        }
     }
 
     private void initMine() {
@@ -148,9 +176,6 @@ public class ChatActivity extends Activity {
     }
 
     private void initFriend() {
-        Intent intent = this.getIntent();
-        conversation = (Conversation) intent.getParcelableExtra(CON_CHAT);
-
         if (conversation != null) {
             Bitmap avatar = BitmapFactory.decodeResource(this.getResources(),
                     R.drawable.person1);
@@ -180,8 +205,6 @@ public class ChatActivity extends Activity {
                 clickOptionButton();
             }
         });
-
-
 
         mediaLayout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -216,6 +239,38 @@ public class ChatActivity extends Activity {
             public void onClick(View view) {
                 clickVoice();
                 closeOptionMenu();
+            }
+        });
+
+
+        swipeContainer.setOnChildScrollUpCallback(new SwipeRefreshLayout.OnChildScrollUpCallback() {
+            @Override
+            public boolean canChildScrollUp(@NonNull SwipeRefreshLayout parent, @Nullable View child) {
+                if (canContinueRequest && chatView.getMessageView().getCount() > 0)
+                {
+                    if (chatView.getMessageView().getChildAt(0).getTop() == 0)
+                        return false;
+                }
+
+                return true;
+            }
+        });
+
+        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                if (canContinueRequest)
+                {
+                    mSocket.emit(CLIENT_REQUES_CONTINUE_MESSAGE, conversation.getId(), listMessages.size());
+                    canContinueRequest = false;
+
+                    new Handler().postDelayed(new Runnable() {
+                        @Override public void run() {
+                            if (swipeContainer.isRefreshing())
+                                swipeContainer.setRefreshing(false);
+                        }
+                    }, 1000);
+                }
             }
         });
     }
@@ -271,6 +326,11 @@ public class ChatActivity extends Activity {
         chatView.animate().translationY(0);
     }
 
+    private String formatTimeToString(Calendar createdAt){
+        android.text.format.DateFormat formater = new android.text.format.DateFormat();
+        return formater.format("dd/MM hh:mm", createdAt).toString();
+    }
+
     private void sendMessageText(String content){
         Calendar createdAt = Calendar.getInstance();
         String timeCreatedString = gson.toJson(createdAt);
@@ -284,6 +344,11 @@ public class ChatActivity extends Activity {
                 .setUsernameVisibility(false)
                 .build();
         chatView.send(mMessage);
+        listMessages.add(mMessage);
+
+        conversation.setLastMess(chatView.getInputText());
+        conversation.setTimeCreated(formatTimeToString(createdAt));
+        conversation.setIsMe(1);
 
         //checkIsExistConversation
         org.json.simple.JSONObject  obj = new org.json.simple.JSONObject();
@@ -324,6 +389,11 @@ public class ChatActivity extends Activity {
                 .setCreatedAt(createdAt)
                 .build();
         chatView.send(mMessage);
+        listMessages.add(mMessage);
+
+        conversation.setLastMess("picture...");
+        conversation.setTimeCreated(formatTimeToString(createdAt));
+        conversation.setIsMe(1);
 
         org.json.simple.JSONObject  obj = new org.json.simple.JSONObject();
         obj.put("type", PICTURE);
@@ -395,7 +465,7 @@ public class ChatActivity extends Activity {
                         if (idRoom.equals(conversation.getId())){
                             if (type.equals(TEXT)){
                                 time = data.getString(TIME);
-                                Calendar createdMess = gson.fromJson(time, Calendar.class);
+                                Calendar createdAt = gson.fromJson(time, Calendar.class);
 
                                 Message receivedMessage = new Message.Builder()
                                         .setUser(friend)
@@ -403,14 +473,20 @@ public class ChatActivity extends Activity {
                                         .hideIcon(false)
                                         .setRightMessage(false)
                                         .setUsernameVisibility(false)
-                                        .setCreatedAt(createdMess)
+                                        .setCreatedAt(createdAt)
                                         .build();
                                 chatView.receive(receivedMessage);
+                                listMessages.add(receivedMessage);
+
+
+                                conversation.setLastMess(mess);
+                                conversation.setTimeCreated(formatTimeToString(createdAt));
+                                conversation.setIsMe(0);
                             }
 
                             if (type.equals(PICTURE)){
                                 time = data.getString(TIME);
-                                Calendar createdMess = gson.fromJson(time, Calendar.class);
+                                Calendar createdAt = gson.fromJson(time, Calendar.class);
 
                                 Bitmap picture = getBitmapFromString(mess);
                                 Message receivedMessage = new Message.Builder()
@@ -419,10 +495,16 @@ public class ChatActivity extends Activity {
                                         .setPicture(picture) // Set picture
                                         .setType(Message.Type.PICTURE) //Set Message Type
                                         .setUsernameVisibility(false)
-                                        .setCreatedAt(createdMess)
+                                        .setCreatedAt(createdAt)
                                         .hideIcon(false)
                                         .build();
                                 chatView.receive(receivedMessage);
+                                listMessages.add(receivedMessage);
+
+
+                                conversation.setLastMess("picture...");
+                                conversation.setTimeCreated(formatTimeToString(createdAt));
+                                conversation.setIsMe(0);
                             }
 
                             if (type.equals(AUDIO)){
@@ -450,64 +532,9 @@ public class ChatActivity extends Activity {
                         array = data.getJSONArray(SERVER_RES_N_LAST_MESSAGE);
 
                         if (array != null){
-                            ArrayList<Message> listMessages = new ArrayList<Message>();
-
                             for(int i = 0; i < array.length(); i++){
                                 JSONObject obj = array.getJSONObject(i);
-
-                                Calendar createdAt = gson.fromJson(obj.getString("time"), Calendar.class);
-
-                                if (obj.getString("type").equals(TEXT)){
-                                    if (obj.getString("sender").equals(Me.getInstance().getEmail())){
-                                        Message mMessage = new Message.Builder()
-                                                .setUser(me)
-                                                .setMessageText(obj.getString("message"))
-                                                .hideIcon(true)
-                                                .setRightMessage(true)
-                                                .setUsernameVisibility(false)
-                                                .setCreatedAt(createdAt)
-                                                .build();
-                                        listMessages.add(mMessage);
-                                    } else {
-                                        Message receivedMessage = new Message.Builder()
-                                                .setUser(friend)
-                                                .setMessageText(obj.getString("message"))
-                                                .hideIcon(false)
-                                                .setRightMessage(false)
-                                                .setUsernameVisibility(false)
-                                                .setCreatedAt(createdAt)
-                                                .build();
-                                        listMessages.add(receivedMessage);
-                                    }
-                                }
-
-                                if (obj.getString("type").equals(PICTURE)) {
-                                    Bitmap picture = getBitmapFromString(obj.getString("message"));
-
-                                    if (obj.getString("sender").equals(Me.getInstance().getEmail())){
-                                        Message mMessage = new Message.Builder()
-                                                .setUser(me)
-                                                .setPicture(picture)
-                                                .setType(Message.Type.PICTURE)
-                                                .hideIcon(true)
-                                                .setRightMessage(true)
-                                                .setUsernameVisibility(false)
-                                                .setCreatedAt(createdAt)
-                                                .build();
-                                        listMessages.add(mMessage);
-                                    } else {
-                                        Message receivedMessage = new Message.Builder()
-                                                .setUser(friend)
-                                                .setPicture(picture)
-                                                .setType(Message.Type.PICTURE)
-                                                .hideIcon(false)
-                                                .setRightMessage(false)
-                                                .setUsernameVisibility(false)
-                                                .setCreatedAt(createdAt)
-                                                .build();
-                                        listMessages.add(receivedMessage);
-                                    }
-                                }
+                                initMessagesToList(obj);
                             }
 
                             chatView.getMessageView().init(listMessages);
@@ -521,6 +548,93 @@ public class ChatActivity extends Activity {
             });
         }
     };
+
+    private Emitter.Listener onListenServer_ContinueMessages = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    JSONObject data = (JSONObject) args[0];
+                    JSONArray array;
+                    try {
+                        array = data.getJSONArray(SERVER_RES_CONTINUE_MESSAGE);
+
+                        if (array != null){
+                            for(int i = 0; i < array.length(); i++){
+                                JSONObject obj = array.getJSONObject(i);
+                                initMessagesToList(obj);
+                            }
+
+                            if (array.length() > 0){
+                                chatView.getMessageView().init(listMessages);
+                                chatView.hideKeyboard();
+                                canContinueRequest = true;
+                            }
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    };
+
+    private void initMessagesToList(JSONObject obj) throws JSONException {
+        Calendar createdAt = gson.fromJson(obj.getString("time"), Calendar.class);
+
+        if (obj.getString("type").equals(TEXT)){
+            if (obj.getString("sender").equals(Me.getInstance().getEmail())){
+                Message mMessage = new Message.Builder()
+                        .setUser(me)
+                        .setMessageText(obj.getString("message"))
+                        .hideIcon(true)
+                        .setRightMessage(true)
+                        .setUsernameVisibility(false)
+                        .setCreatedAt(createdAt)
+                        .build();
+                listMessages.add(mMessage);
+            } else {
+                Message receivedMessage = new Message.Builder()
+                        .setUser(friend)
+                        .setMessageText(obj.getString("message"))
+                        .hideIcon(false)
+                        .setRightMessage(false)
+                        .setUsernameVisibility(false)
+                        .setCreatedAt(createdAt)
+                        .build();
+                listMessages.add(receivedMessage);
+            }
+        }
+
+        if (obj.getString("type").equals(PICTURE)) {
+            Bitmap picture = getBitmapFromString(obj.getString("message"));
+
+            if (obj.getString("sender").equals(Me.getInstance().getEmail())){
+                Message mMessage = new Message.Builder()
+                        .setUser(me)
+                        .setPicture(picture)
+                        .setType(Message.Type.PICTURE)
+                        .hideIcon(true)
+                        .setRightMessage(true)
+                        .setUsernameVisibility(false)
+                        .setCreatedAt(createdAt)
+                        .build();
+                listMessages.add(mMessage);
+            } else {
+                Message receivedMessage = new Message.Builder()
+                        .setUser(friend)
+                        .setPicture(picture)
+                        .setType(Message.Type.PICTURE)
+                        .hideIcon(false)
+                        .setRightMessage(false)
+                        .setUsernameVisibility(false)
+                        .setCreatedAt(createdAt)
+                        .build();
+                listMessages.add(receivedMessage);
+            }
+        }
+    }
 
     @Override
     public void onBackPressed() {

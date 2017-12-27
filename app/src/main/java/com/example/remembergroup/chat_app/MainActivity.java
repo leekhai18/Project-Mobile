@@ -3,10 +3,14 @@ package com.example.remembergroup.chat_app;
 import android.app.Activity;
 import android.content.Intent;
 
+import android.graphics.Bitmap;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.os.Bundle;
 import android.support.v7.widget.SearchView;
+import android.text.format.DateFormat;
+import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
@@ -22,13 +26,17 @@ import com.example.remembergroup.model.Friend;
 import com.example.remembergroup.model.ListConversations;
 import com.example.remembergroup.model.ListFriends;
 import com.example.remembergroup.model.Me;
+import com.github.bassaer.chatmessageview.models.Message;
+import com.google.gson.Gson;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.List;
 
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -45,6 +53,7 @@ public class MainActivity extends Activity {
     private  final String SERVER_UPDATE_FRIENDS_ONLINE = "SERVER_UPDATE_FRIENDS_ONLINE";
     private  final String CON_CHAT = "CON_CHAT";
     private  final String SERVER_SEND_NEW_CONVERSATION = "SERVER_SEND_NEW_CONVERSATION";
+    private final String SERVER_SEND_MESSAGE = "SERVER_SEND_MESSAGE";
 
 
     private Socket mSocket;
@@ -92,6 +101,7 @@ public class MainActivity extends Activity {
         mSocket.on(SERVER_UPDATE_STATE_TO_OTHERS, onListen_UpdateStateToOthers);
         mSocket.on(SERVER_UPDATE_FRIENDS_ONLINE, onListen_UpdateFriendsOnline);
         mSocket.on(SERVER_SEND_NEW_CONVERSATION, onListen_NewConversation);
+        mSocket.on(SERVER_SEND_MESSAGE, onListenServer_SendMessage);
     }
 
     //TO DO: add events
@@ -268,12 +278,32 @@ public class MainActivity extends Activity {
                     JSONObject data = (JSONObject) args[0];
                     String email;
                     String id;
+                    String type;
+                    String mess;
+                    String time;
+
                     try {
                         email = data.getString(EMAIL);
                         id = data.getString(ID);
+                        type = data.getString("TYPE");
+                        if (type.equals("TEXT")){
+                            mess = data.getString("MESSAGE");
+                        }else if (type.equals("PICTURE")){
+                            mess = "picture...";
+                        }else {
+                            mess = "audio...";
+                        }
+
+                        Gson gson = new Gson();
+                        Calendar createdAt = gson.fromJson(data.getString("TIME"), Calendar.class);
+                        DateFormat formater = new DateFormat();
+                        time = formater.format("dd/MM hh:mm", createdAt).toString();
+
                         for(int i = 0; i < listFriends.size(); i++){
                             if (listFriends.get(i).getEmail().equals(email)){
-                                listConversations.add(0, new Conversation(id, listFriends.get(i)));
+                                listConversations.add(0,
+                                        new Conversation(id, listFriends.get(i),
+                                                mess, time, (email.equals(Me.getInstance().getEmail()) ? 1:0)));
                             }
                         }
 
@@ -371,6 +401,54 @@ public class MainActivity extends Activity {
 
                         adapterConversations.notifyDataSetChanged();
                         adapterFriends.notifyDataSetChanged();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    };
+
+    private Emitter.Listener onListenServer_SendMessage = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    JSONObject data = (JSONObject) args[0];
+                    String mess;
+                    String idRoom;
+                    String type;
+                    String time;
+
+                    try {
+                        idRoom = data.getString("ROOM");
+                        type = data.getString("TYPE");
+                        if (type.equals("TEXT")) {
+                            mess = data.getString("MESSAGE");
+                        } else if (type.equals("PICTURE")) {
+                            mess = "picture...";
+                        } else {
+                            mess = "audio...";
+                        }
+
+                        Gson gson = new Gson();
+                        Calendar createdAt = gson.fromJson(data.getString("TIME"), Calendar.class);
+                        DateFormat formater = new DateFormat();
+                        time = formater.format("dd/MM hh:mm", createdAt).toString();
+
+                        for (int i = 0; i < ListConversations.getInstance().getArray().size(); i++){
+                            if (ListConversations.getInstance().getArray().get(i).getId().equals(idRoom)){
+
+                                ListConversations.getInstance().getArray().get(i).setLastMess(mess);
+                                ListConversations.getInstance().getArray().get(i).setTimeCreated(time);
+                                ListConversations.getInstance().getArray().get(i).setIsMe(
+                                        data.getString("SENDER").equals(Me.getInstance().getEmail()) ? 1:0);
+                            }
+                        }
+
+                        adapterConversations.notifyDataSetChanged();
+
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }

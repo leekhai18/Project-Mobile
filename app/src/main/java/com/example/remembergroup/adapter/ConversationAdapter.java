@@ -76,6 +76,8 @@ public class ConversationAdapter extends ArrayAdapter<Conversation>  {
             imgOnline.setVisibility(View.VISIBLE);
         else
             imgOnline.setVisibility(View.INVISIBLE);
+        txtText.setText(con.getLastMess());
+        txtTime.setText(con.getTimeCreated());
 
         //add events
         btnMenu.setOnClickListener(new View.OnClickListener() {
