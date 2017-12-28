@@ -130,6 +130,7 @@ public class ChatActivity extends Activity {
         mSocket.emit(CLIENT_REQUEST_N_LAST_MESSAGE, conversation.getId());
         mSocket.on(SERVER_RES_N_LAST_MESSAGE, onListenServer_LastMessages);
         mSocket.on(SERVER_RES_CONTINUE_MESSAGE, onListenServer_ContinueMessages);
+        SingletonSocket.getInstance().ListeningRequest();
     }
 
     private void addControls() {
@@ -647,10 +648,6 @@ public class ChatActivity extends Activity {
 
     //Region: Helper
     private String getStringFromBitmap(Bitmap bitmapPicture) {
-         /*
-         * This functions converts Bitmap picture to a string which can be
-         * JSONified.
-         * */
         if(bitmapPicture==null)
             return "";
         final int COMPRESSION_QUALITY = 100;
@@ -665,9 +662,6 @@ public class ChatActivity extends Activity {
     }
 
     private Bitmap getBitmapFromString(String stringPicture) {
-        /*
-        * This Function converts the String back to Bitmap
-        * */
         if(stringPicture=="")
             return null;
         byte[] decodedString = Base64.decode(stringPicture, Base64.DEFAULT);

@@ -4,11 +4,13 @@ import android.graphics.BitmapFactory;
 import android.text.format.DateFormat;
 import android.util.Log;
 
+import com.example.remembergroup.adapter.RequestAddFriendAdapter;
 import com.example.remembergroup.model.Conversation;
 import com.example.remembergroup.model.Friend;
 import com.example.remembergroup.model.ListConversations;
 import com.example.remembergroup.model.ListFriends;
 import com.example.remembergroup.model.Me;
+import com.example.remembergroup.model.User;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
@@ -17,6 +19,7 @@ import org.json.JSONObject;
 
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 
 import io.socket.client.IO;
@@ -34,6 +37,7 @@ public class SingletonSocket {
 
     private final String SERVER_SEND_CONVERSATIONS = "SERVER_SEND_CONVERSATIONS";
     private final String SERVER_SEND_FRIENDS = "SERVER_SEND_FRIENDS";
+    private final String SERVER_SEND_REQUEST_ADD_FRIEND = "SERVER_SEND_REQUEST_ADD_FRIEND";
     private  final String MEM_ROOM = "MEM_ROOM";
     private  final String SERVER_SEND_DATA_ME = "SERVER_SEND_DATA_ME";
     private  final String NAME = "NAME";
@@ -41,9 +45,6 @@ public class SingletonSocket {
     private  final String AVARTAR = "AVARTAR";
     private  final String STATE = "STATE";
     private  final String ID = "ID";
-
-
-    // Listen request friend here
 
     // instance
     private static SingletonSocket INSTANCE = new SingletonSocket();
@@ -72,15 +73,24 @@ public class SingletonSocket {
 
     }
 
+    public void ListeningRequest() {
+        mSocket.on(SERVER_SEND_REQUEST_ADD_FRIEND, onListen_AddFriend);
+    }
+
     private Emitter.Listener onListen_MyData = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
             JSONObject data = (JSONObject) args[0];
+            JSONArray arrayRequest;
             try {
                 Me.getInstance().setEmail(data.getString(EMAIL));
                 Me.getInstance().setName(data.getString(NAME));
-
                 // Need add avatar in here
+
+                arrayRequest = data.getJSONArray(SERVER_SEND_REQUEST_ADD_FRIEND);
+                for (int i = 1; i < arrayRequest.length(); i++){
+                    Me.getInstance().listEUserRequest.add(arrayRequest.get(i).toString());
+                }
 
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -98,10 +108,14 @@ public class SingletonSocket {
                 if (array != null){
                     for(int i = 0; i < array.length(); i++){
                         JSONObject obj = array.getJSONObject(i);
-                        ListFriends.getInstance().add(new Friend( obj.getString(EMAIL),
-                                obj.getString(NAME),
+                        Friend fr =  new Friend( obj.getString("EMAIL"),
+                                obj.getString("NAME"),
                                 BitmapFactory.decodeFile("drawable://" + R.drawable.person),
-                                obj.getString(STATE)=="online" ? true:false));
+                                (obj.getString("STATE").equals("online")) ? true:false);
+
+                        if (!ListFriends.getInstance().getArray().contains(fr)) {
+                            ListFriends.getInstance().add(fr);
+                        }
                     }
                 }
             } catch (JSONException e) {
@@ -144,6 +158,21 @@ public class SingletonSocket {
                             }
                         }
                     }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    };
+
+
+    private Emitter.Listener onListen_AddFriend = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            JSONObject data = (JSONObject) args[0];
+            try {
+                if (!Me.getInstance().listEUserRequest.contains(data.getString(SERVER_SEND_REQUEST_ADD_FRIEND))) {
+                    Me.getInstance().listEUserRequest.add(data.getString(SERVER_SEND_REQUEST_ADD_FRIEND));
                 }
             } catch (JSONException e) {
                 e.printStackTrace();

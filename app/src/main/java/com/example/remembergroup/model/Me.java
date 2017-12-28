@@ -11,15 +11,8 @@ public class Me extends User {
     private static Me instance;
 
     // list add friend request
-    private ArrayList<Friend> listAddFriendRequest;
-
-    void addRequest(Friend f){
-        listAddFriendRequest.add(f);
-    }
-
-    ArrayList<Friend> getListRequest(){
-        return listAddFriendRequest;
-    }
+    public ArrayList<String> listEUserRequest = new ArrayList<>();
+    public User accepted;
 
     public static Me getInstance() {
         if(instance == null)

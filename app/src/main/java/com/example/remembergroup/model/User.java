@@ -5,7 +5,7 @@ import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public abstract class User implements Parcelable {
+public class User implements Parcelable {
 
     protected String name = "";
     protected String email = "";
@@ -50,29 +50,35 @@ public abstract class User implements Parcelable {
         this.phoneNumber = phoneNumber;
     }
 
-/*    @Override
+    public static final Creator<User> CREATOR = new Creator<User>() {
+        @Override
+        public User createFromParcel(Parcel in) {
+            return new User(in);
+        }
+
+        @Override
+        public User[] newArray(int size) {
+            return new User[size];
+        }
+    };
+
+    @Override
     public int describeContents() {
         return 0;
     }
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(this.email);
-        parcel.writeString(this.name);
-        parcel.writeValue(this.avatar);
+        parcel.writeString(name);
+        parcel.writeString(email);
+        parcel.writeParcelable(avatar, i);
+        parcel.writeString(phoneNumber);
     }
 
-    // this is used to regenerate your object. All Parcelables must have a CREATOR that implements these two methods
-    public static final Parcelable.Creator<User> CREATOR = new Parcelable.Creator<User>() {
-        public User createFromParcel(Parcel in) {return new User(in);}
-        public User[] newArray(int size) {
-            return new User[size];
-        }
-    };
-
-    private User(Parcel in) {
-        this.email = in.readString();
-        this.name = in.readString();
-        this.avatar = (Bitmap) in.readValue(ClassLoader.getSystemClassLoader());
-    }*/
+    protected User(Parcel in) {
+        name = in.readString();
+        email = in.readString();
+        avatar = in.readParcelable(Bitmap.class.getClassLoader());
+        phoneNumber = in.readString();
+    }
 }

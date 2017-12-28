@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.os.Bundle;
@@ -18,6 +19,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TabHost;
+import android.widget.TextView;
 
 import com.example.remembergroup.adapter.ConversationAdapter;
 import com.example.remembergroup.adapter.FriendAdapter;
@@ -54,6 +56,8 @@ public class MainActivity extends Activity {
     private  final String CON_CHAT = "CON_CHAT";
     private  final String SERVER_SEND_NEW_CONVERSATION = "SERVER_SEND_NEW_CONVERSATION";
     private final String SERVER_SEND_MESSAGE = "SERVER_SEND_MESSAGE";
+    private final String SERVER_SEND_REQUEST_ADD_FRIEND = "SERVER_SEND_REQUEST_ADD_FRIEND";
+    private final String SERVER_SEND_NEW_FRIEND = "SERVER_SEND_NEW_FRIEND";
 
 
     private Socket mSocket;
@@ -61,13 +65,13 @@ public class MainActivity extends Activity {
     ListView lvConversations;
     ArrayList<Conversation> listConversations;
     ConversationAdapter adapterConversations;
-    ImageButton btnChat,btnProfile,btnSetting;
     ListView lvFriends;
     ArrayList<Friend> listFriends;
     FriendAdapter adapterFriends;
     SearchView searchTool;
     ImageView imgMe;
     ImageView imgAddFriend;
+    TextView txtNumRequest;
 
 
 
@@ -80,9 +84,7 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         initSocket();
-
         addControls();
-
         addEvents();
     }
 
@@ -91,17 +93,23 @@ public class MainActivity extends Activity {
         super.onStart();
         adapterConversations.notifyDataSetChanged();
         adapterFriends.notifyDataSetChanged();
+
+        if (Me.getInstance().listEUserRequest.size() != 0) {
+            txtNumRequest.setText(String.valueOf(Me.getInstance().listEUserRequest.size()));
+        } else {
+            txtNumRequest.setText("");
+        }
     }
 
     private void initSocket() {
         mSocket = SingletonSocket.getInstance().mSocket;
 
-        //mSocket.on(SERVER_SEND_CONVERSATIONS, onListen_Conversations);
-        //mSocket.on(SERVER_SEND_FRIENDS, onListen_Friends);
         mSocket.on(SERVER_UPDATE_STATE_TO_OTHERS, onListen_UpdateStateToOthers);
         mSocket.on(SERVER_UPDATE_FRIENDS_ONLINE, onListen_UpdateFriendsOnline);
         mSocket.on(SERVER_SEND_NEW_CONVERSATION, onListen_NewConversation);
         mSocket.on(SERVER_SEND_MESSAGE, onListenServer_SendMessage);
+        mSocket.on(SERVER_SEND_REQUEST_ADD_FRIEND, onListen_AddFriend);
+        mSocket.on(SERVER_SEND_NEW_FRIEND, onListen_NewFriend);
     }
 
     //TO DO: add events
@@ -200,6 +208,7 @@ public class MainActivity extends Activity {
         imgAddFriend = findViewById(R.id.imgAddFriend);
         imgMe = findViewById(R.id.imgMe);
         //imgMe.setImageBitmap(Me.getInstance().getAvatar());
+        txtNumRequest = findViewById(R.id.numRequestAddFriend);
     }
 
     // Launch chatRoom activity
@@ -452,6 +461,60 @@ public class MainActivity extends Activity {
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
+                }
+            });
+        }
+    };
+
+    private Emitter.Listener onListen_AddFriend = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    JSONObject data = (JSONObject) args[0];
+                    try {
+                        if (!Me.getInstance().listEUserRequest.contains(data.getString(SERVER_SEND_REQUEST_ADD_FRIEND))){
+                            Me.getInstance().listEUserRequest.add(data.getString(SERVER_SEND_REQUEST_ADD_FRIEND));
+                            txtNumRequest.setText(String.valueOf(Me.getInstance().listEUserRequest.size()));
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    };
+
+    private Emitter.Listener onListen_NewFriend = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    JSONObject data = (JSONObject) args[0];
+//                    try {
+//
+//                        Friend fr =  new Friend( data.getString("EMAIL"),
+//                                data.getString("NAME"),
+//                                BitmapFactory.decodeFile("drawable://" + R.drawable.person),
+//                                (data.getString("STATE").equals("online")) ? true:false);
+//
+//                        if (!ListFriends.getInstance().getArray().contains(fr)) {
+//                            ListFriends.getInstance().add(fr);
+//                        }
+
+
+//                        if (Me.getInstance().listEUserRequest.size() != 0) {
+//                            txtNumRequest.setText(String.valueOf(Me.getInstance().listEUserRequest.size()));
+//                        } else {
+//                            txtNumRequest.setText("");
+//                        }
+//                    } catch (JSONException e) {
+//                        e.printStackTrace();
+//                    }
+
+                    adapterFriends.notifyDataSetChanged();
                 }
             });
         }

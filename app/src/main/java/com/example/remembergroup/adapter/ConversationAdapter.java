@@ -39,6 +39,7 @@ public class ConversationAdapter extends ArrayAdapter<Conversation>  {
     private List<Conversation> objects;
 
     private List<Conversation> filterData;
+
     public ConversationAdapter(@NonNull Activity context, @LayoutRes int resource, @NonNull List<Conversation> objects) {
         super(context, resource, objects);
         this.filterData=objects;
@@ -53,15 +54,12 @@ public class ConversationAdapter extends ArrayAdapter<Conversation>  {
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         //get layout inflater
         LayoutInflater inflater=context.getLayoutInflater();
-        //ViewHolder holder = null;
 
         @SuppressLint("ViewHolder") View row=inflater.inflate(resource,null);
         TextView txtName=row.findViewById(R.id.txtName);
         TextView txtText=row.findViewById(R.id.txtText);
         TextView txtTime=row.findViewById(R.id.txtTime);
         ImageView imgOnline=row.findViewById(R.id.imgOnline);
-
-        //load id to controls
         ImageView imgImage=row.findViewById(R.id.imgImage);
         Button btnMenu=row.findViewById(R.id.btnMenu);
 
@@ -86,16 +84,8 @@ public class ConversationAdapter extends ArrayAdapter<Conversation>  {
                 handleMenuClick(view);
             }
         });
-        return row;
-    }
 
-    private void addEvents(View view) {
-        view.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                handleMenuClick(view);
-            }
-        });
+        return row;
     }
 
     private void handleMenuClick(View view) {
@@ -150,28 +140,5 @@ public class ConversationAdapter extends ArrayAdapter<Conversation>  {
                     notifyDataSetChanged();
             }
         };
-    }
-    //View holder
-    private static class ViewHolder
-    {
-        private TextView txtName;
-        private TextView txtText;
-        private TextView txtTime;
-        private ImageView imgOnline;
-        private ImageView imgImage;
-        private Button btnMenu;
-
-        public ViewHolder() {
-        }
-
-        public ViewHolder(View row)
-        {
-            txtName=row.findViewById(R.id.txtName);
-            txtText=row.findViewById(R.id.txtText);
-            txtTime=row.findViewById(R.id.txtTime);
-            imgOnline=row.findViewById(R.id.imgOnline);
-            imgImage=row.findViewById(R.id.imgImage);
-            btnMenu=row.findViewById(R.id.btnMenu);
-        }
     }
 }
