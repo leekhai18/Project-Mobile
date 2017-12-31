@@ -39,8 +39,8 @@ public class ProfileFriendActivity extends AppCompatActivity {
     private TextView txtPhoneNum;
     private TextView unfriend;
     private Friend friend;
-    private boolean unfriendSuccess;
-    private boolean flagForceOff;
+    private Handler handler;
+    private Runnable runnable;
 
     private AlertDialog.Builder alertDialogBuilder;
 
@@ -78,8 +78,6 @@ public class ProfileFriendActivity extends AppCompatActivity {
         txtName.setText(friend.getName());
         txtPhoneNum.setText(friend.getPhoneNumber());
 
-        flagForceOff = false;
-        unfriendSuccess = false;
         alertDialogBuilder = new AlertDialog.Builder(ProfileFriendActivity.this);
         alertDialogBuilder.setMessage("Unfriend now, Y/N");
         alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -87,25 +85,14 @@ public class ProfileFriendActivity extends AppCompatActivity {
             public void onClick(DialogInterface arg0, int arg1) {
                 SingletonSocket.getInstance().mSocket.emit(CLIENT_UNFRIEND, friend.getEmail());
 
-                Intent i = new Intent(ProfileFriendActivity.this, MainActivity.class);
-
-                while(true){
-                    if (unfriendSuccess || flagForceOff){
-                        Toast.makeText(getApplicationContext(), "Unfriend successfully", Toast.LENGTH_SHORT).show();
-                        startActivity(i);
-                        finish();
-                        break;
-                    }
-                }
-
-                Handler handler = new Handler();
-                handler.postDelayed(new Runnable() {
+                handler = new Handler();
+                runnable = new Runnable() {
                     @Override
                     public void run() {
-                        flagForceOff = true;
                         Toast.makeText(getApplicationContext(), "Unfriend failed", Toast.LENGTH_SHORT).show();
                     }
-                }, 4000);
+                };
+                handler.postDelayed(runnable,2000);
             }
         });
         alertDialogBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -134,8 +121,14 @@ public class ProfileFriendActivity extends AppCompatActivity {
                 public void run() {
                     String data =  args[0].toString();
 
-                    if (data.equals("true")){
-                        unfriendSuccess = true;
+                    if (!data.equals("")){
+                        handler.removeCallbacks(runnable);
+                        Intent i = new Intent(ProfileFriendActivity.this, MainActivity.class);
+                        startActivity(i);
+                        finish();
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Unfriend failed", Toast.LENGTH_SHORT).show();
+                        handler.removeCallbacks(runnable);
                     }
                 }
             });

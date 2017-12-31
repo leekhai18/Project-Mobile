@@ -36,7 +36,7 @@
         <activity android:name=".ProfileFriendActivity" />
         <activity android:name=".ProfileMeActivity" />
         <activity android:name=".ChatActivity" />
-        <activity android:name=".MainActivity" android:launchMode="singleTop" />
+        <activity android:name=".MainActivity" android:launchMode="singleTask" />
         <activity android:name=".RegisterActivity" />
         <activity android:name=".AddFriendActivity" />
     </application>

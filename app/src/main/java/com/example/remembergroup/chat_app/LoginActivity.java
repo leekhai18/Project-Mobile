@@ -8,11 +8,15 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.os.Handler;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -35,7 +39,11 @@ public class LoginActivity extends AppCompatActivity  {
     private final String SERVER_RE_LOGIN = "SERVER_RE_LOGIN";
     private final String CLIENT_LOGIN = "CLIENT_LOGIN";
     private final String CLIENT_REQUEST_DATA = "CLIENT_REQUEST_DATA";
+    private final String CLIENT_FORGOT_PASSWORD = "CLIENT_FORGOT_PASSWORD";
+    private final String SERVER_SEND_PASSWORD = "SERVER_SEND_PASSWORD";
 
+    private Handler handler;
+    private Runnable runnable;
     private boolean flagForceOff;
     private Socket mSocket;
     private ProgressDialog pDialog;
@@ -43,6 +51,11 @@ public class LoginActivity extends AppCompatActivity  {
     Button btnSignIn,btnForgotPassword,btnSignUp;
     LoginButton btnLoginFB;
     CallbackManager callbackManager;
+
+    private AlertDialog dialogForgotPassword;
+    private EditText edtRealEmail;
+    private EditText edtEmail;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,6 +86,7 @@ public class LoginActivity extends AppCompatActivity  {
 
         mSocket.on(SERVER_RE_LOGIN, onLogin);
         SingletonSocket.getInstance().ListeningToGetData();
+        mSocket.on(SERVER_SEND_PASSWORD, onListen_GetPassword);
 
         //mSocket.connect();
         if (! mSocket.connected()) {
@@ -92,6 +106,16 @@ public class LoginActivity extends AppCompatActivity  {
 
         // Progress dialog
         pDialog = new ProgressDialog(this);
+
+        handler = new Handler();
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                finish();
+                startActivity(getIntent());
+                Toast.makeText(getApplicationContext(), "Login failed", Toast.LENGTH_SHORT).show();
+            }
+        };
     }
 
     private void addEvents() {
@@ -139,13 +163,75 @@ public class LoginActivity extends AppCompatActivity  {
                 finish();
             }
         });
+
         btnForgotPassword.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                showEditTextDialog();
             }
         });
 
+    }
+
+    private void showEditTextDialog() {
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = this.getLayoutInflater();
+        final View dialogView = inflater.inflate(R.layout.forgotpassword_dialog, null);
+        dialogBuilder.setView(dialogView);
+
+        edtRealEmail = dialogView.findViewById(R.id.txtRealEmail);
+        edtEmail = dialogView.findViewById(R.id.txtEmail);
+        Button btnGet = dialogView.findViewById(R.id.btnGetPassword);
+
+        btnGet.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (edtEmail.getText().toString().equals("") || edtRealEmail.getText().toString().equals("")){
+                    Toast.makeText(getApplicationContext(), "Please fill in full filed", Toast.LENGTH_SHORT).show();
+                } else {
+                    mSocket.emit(CLIENT_FORGOT_PASSWORD, edtEmail.getText().toString());
+                }
+            }
+        });
+
+        dialogForgotPassword = dialogBuilder.create();
+        dialogForgotPassword.show();
+        resizeDialog(dialogForgotPassword, 0.8f, 0.3f);
+    }
+
+    private void resizeDialog(AlertDialog mdialog, float width, float height){
+        // Get screen width and height in pixels
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        // The absolute width of the available display size in pixels.
+        int displayWidth = displayMetrics.widthPixels;
+        // The absolute height of the available display size in pixels.
+        int displayHeight = displayMetrics.heightPixels;
+
+        // Initialize a new window manager layout parameters
+        WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
+
+        // Copy the alert dialog window attributes to new layout parameter instance
+        layoutParams.copyFrom(mdialog.getWindow().getAttributes());
+
+        // Set the alert dialog window width and height
+        // Set alert dialog width equal to screen width 90%
+        // int dialogWindowWidth = (int) (displayWidth * 0.9f);
+        // Set alert dialog height equal to screen height 90%
+        // int dialogWindowHeight = (int) (displayHeight * 0.9f);
+
+        // Set alert dialog width equal to screen width 70%
+        int dialogWindowWidth = (int) (displayWidth * width);
+        // Set alert dialog height equal to screen height 70%
+        int dialogWindowHeight = (int) (displayHeight * height);
+
+        // Set the width and height for the layout parameters
+        // This will bet the width and height of alert dialog
+        layoutParams.width = dialogWindowWidth;
+        layoutParams.height = dialogWindowHeight;
+
+        // Apply the newly created layout parameters to the alert dialog window
+        mdialog.getWindow().setAttributes(layoutParams);
     }
 
 
@@ -200,10 +286,12 @@ public class LoginActivity extends AppCompatActivity  {
 
                         Intent intent = new Intent(LoginActivity.this,
                                 MainActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+
+                        handler.postDelayed(runnable, 2000);
 
                         while(true){
-                            if(!Me.getInstance().getEmail().equals("") || flagForceOff){
+                            if(!Me.getInstance().getEmail().equals("")){
+                                handler.removeCallbacks(runnable);
                                 hideDialog();
                                 writeAccount();
                                 startActivity(intent);
@@ -212,17 +300,28 @@ public class LoginActivity extends AppCompatActivity  {
                             }
                         }
 
-                        Handler handler = new Handler();
-                        handler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                flagForceOff = true;
-                                Toast.makeText(getApplicationContext(), "Login failed", Toast.LENGTH_SHORT).show();
-                            }
-                        }, 4000);
-
                     }else{
                         Toast.makeText(getApplicationContext(), "Email or password is wrong", Toast.LENGTH_SHORT).show();
+                        handler.removeCallbacks(runnable);
+                    }
+                }
+            });
+        }
+    };
+
+    Emitter.Listener onListen_GetPassword = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    String data = args[0].toString();
+
+                    if (data.equals("false")){
+                        Toast.makeText(getApplicationContext(), "Email of chat app does not exists", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Your password just send to your email", Toast.LENGTH_SHORT).show();
+                        dialogForgotPassword.dismiss();
                     }
                 }
             });

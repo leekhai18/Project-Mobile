@@ -479,7 +479,7 @@ public class MainActivity extends Activity {
                         fr.setOnline((data.getString("STATE").equals("online")) ? true:false);
 
                         ListFriends.getInstance().add(fr);
-                        Toast.makeText(getApplicationContext(), fr.getName() + " add with you", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), Me.getInstance().getName() + " and " + fr.getName() + " are friend", Toast.LENGTH_SHORT).show();
 
                         if (Me.getInstance().listEUserRequest.size() != 0) {
                             txtNumRequest.setText(String.valueOf(Me.getInstance().listEUserRequest.size()));
@@ -504,9 +504,19 @@ public class MainActivity extends Activity {
                 public void run() {
                     String data =  args[0].toString();
 
-                    if (data.equals("true")){
-                        Toast.makeText(getApplicationContext(), "Someone unfriend with you", Toast.LENGTH_SHORT).show();
+                    if (!data.equals("")){
+                        Toast.makeText(getApplicationContext(), Me.getInstance().getName() + " and " + data + " are not friend", Toast.LENGTH_SHORT).show();
+
+                        for (int i = 0; i < listFriends.size(); i++) {
+                            if (listFriends.get(i).getEmail().equals(data)){
+                                listFriends.remove(listFriends.get(i));
+                                break;
+                            }
+                        }
+
+                        adapterFriends.notifyDataSetChanged();
                     }
+
                 }
             });
         }
