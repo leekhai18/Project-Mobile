@@ -22,20 +22,16 @@ public class Friend extends User {
         super(name);
     }
 
-    public Friend(String name, Bitmap avatar) {
-        super(name, avatar);
+    public Friend(String email, String name){
+        super(email, name);
     }
 
-    public Friend(String email, String name, Bitmap avatar){
-        super(email, name, avatar);
+    public Friend(String email, String name, String phoneNum){
+        super(email, name, phoneNum);
     }
 
-    public Friend(String email, String name, Bitmap avatar, String phoneNum){
-        super(email, name, avatar, phoneNum);
-    }
-
-    public Friend(String email, String name, Bitmap avt, Boolean isOn){
-        super(email, name, avt);
+    public Friend(String email, String name, Boolean isOn){
+        super(email, name);
         this.isOnline = isOn;
     }
 
@@ -49,7 +45,6 @@ public class Friend extends User {
         parcel.writeString(this.email);
         parcel.writeString(this.name);
         parcel.writeValue(this.isOnline);
-        parcel.writeValue(this.avatar);
         parcel.writeString(this.phoneNumber);
     }
 
@@ -67,7 +62,6 @@ public class Friend extends User {
         this.email = in.readString();
         this.name = in.readString();
         this.isOnline = (boolean) in.readValue(ClassLoader.getSystemClassLoader());
-        this.avatar = (Bitmap) in.readValue(ClassLoader.getSystemClassLoader());
         this.phoneNumber = in.readString();
     }
 }

@@ -9,11 +9,11 @@
 
     <LinearLayout
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="473dp"
         android:layout_gravity="center"
         android:orientation="vertical"
         android:paddingLeft="20dp"
-        android:paddingRight="20dp" >
+        android:paddingRight="20dp">
 
         <EditText
             android:id="@+id/name"
@@ -22,9 +22,9 @@
             android:layout_marginBottom="10dp"
             android:background="@color/input_register_bg"
             android:hint="@string/hint_name"
+            android:inputType="textCapWords"
             android:padding="10dp"
             android:singleLine="true"
-            android:inputType="textCapWords"
             android:textColor="@color/input_register"
             android:textColorHint="@color/input_register_hint" />
 
@@ -68,14 +68,34 @@
             android:textColor="@color/input_register"
             android:textColorHint="@color/input_register_hint" />
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:orientation="horizontal">
+            <ImageView
+                android:id="@+id/imgAvatar"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:src="@drawable/ic_user"/>
+
+            <Button
+                android:id="@+id/btnChooseAvatar"
+                android:layout_width="150dp"
+                android:layout_height="50dp"
+                android:layout_marginLeft="40dp"
+                android:layout_gravity="center"
+                android:background="@drawable/com_facebook_tooltip_black_background"
+                android:text="Choose avatar" />
+        </LinearLayout>
+
         <!-- Login Button -->
 
         <Button
             android:id="@+id/btnRegister"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dip"
-            android:background="#ea4c88"
+            android:layout_marginTop="40dp"
+            android:background="#2980b9"
             android:text="@string/btn_register"
             android:textColor="@color/white" />
 
@@ -85,7 +105,7 @@
             android:id="@+id/btnLinkToLoginScreen"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="40dip"
+            android:layout_marginTop="20dp"
             android:background="@null"
             android:text="@string/btn_link_to_login"
             android:textAllCaps="false"

@@ -8,6 +8,8 @@
         android:layout_height="128dp"
         android:src="@drawable/person1"
         android:layout_gravity="center"
+        android:layout_marginTop="5dp"
+        android:id="@+id/imgAvatar"
         />
 
     <TextView
@@ -30,6 +32,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:src="@drawable/username"
+            android:layout_marginTop="2dp"
             />
         <TextView
             android:text="Email"
@@ -54,7 +57,8 @@
         <ImageView
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:src="@drawable/phone"/>
+            android:src="@drawable/phone"
+            android:layout_marginTop="2dp"/>
 
         <TextView
             android:text="Phone"
@@ -83,7 +87,7 @@
             android:src="@drawable/delete_user_remove" />
 
         <TextView
-            android:id="@+id/txtSwitch"
+            android:id="@+id/txtUnfriend"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:text="Unfriend"

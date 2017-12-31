@@ -34,7 +34,9 @@ public class ListFriends {
     public ArrayList<Friend> getArray(){return array;}
 
     public void add(Friend friend){
-        array.add(friend);
+        if (!array.contains(friend)) {
+            array.add(friend);
+        }
     }
 
     public void remove(Friend friend){

@@ -50,7 +50,7 @@
             android:layout_height="match_parent"
             android:text="Add Friend"
             android:textColor="@color/white"
-            android:background="#FF4081"
+            android:background="@color/lightBlue500"
             android:id="@+id/btnAddF"
             android:layout_margin="10dp"/>
     </LinearLayout>

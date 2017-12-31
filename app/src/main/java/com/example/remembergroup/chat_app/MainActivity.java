@@ -1,13 +1,16 @@
 package com.example.remembergroup.chat_app;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.os.Bundle;
+import android.support.v4.util.LruCache;
 import android.support.v7.widget.SearchView;
 import android.text.format.DateFormat;
 import android.util.Base64;
@@ -20,6 +23,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TabHost;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.remembergroup.adapter.ConversationAdapter;
 import com.example.remembergroup.adapter.FriendAdapter;
@@ -58,6 +62,7 @@ public class MainActivity extends Activity {
     private final String SERVER_SEND_MESSAGE = "SERVER_SEND_MESSAGE";
     private final String SERVER_SEND_REQUEST_ADD_FRIEND = "SERVER_SEND_REQUEST_ADD_FRIEND";
     private final String SERVER_SEND_NEW_FRIEND = "SERVER_SEND_NEW_FRIEND";
+    private final String SERVER_UNFRIEND_SUCCESS = "SERVER_UNFRIEND_SUCCESS";
 
 
     private Socket mSocket;
@@ -94,11 +99,30 @@ public class MainActivity extends Activity {
         adapterConversations.notifyDataSetChanged();
         adapterFriends.notifyDataSetChanged();
 
+        imgMe.setImageBitmap(MemoryManager.getInstance().getBitmapFromMemCache(Me.getInstance().getEmail()));
+
         if (Me.getInstance().listEUserRequest.size() != 0) {
             txtNumRequest.setText(String.valueOf(Me.getInstance().listEUserRequest.size()));
         } else {
             txtNumRequest.setText("");
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        ListFriends.getInstance().getArray().clear();
+        ListFriends.getInstance().getArray().removeAll(ListFriends.getInstance().getArray());
+        ListConversations.getInstance().getArray().clear();
+        ListConversations.getInstance().getArray().removeAll(ListConversations.getInstance().getArray());
+        SingletonSocket.getInstance().wasListenConversation = false;
+        SingletonSocket.getInstance().wasListenFriend = false;
+        Me.getInstance().setEmail("");
+        Me.getInstance().listEUserRequest.clear();
+        Me.getInstance().listEUserRequest.removeAll(Me.getInstance().listEUserRequest);
+
+        System.exit(0);
     }
 
     private void initSocket() {
@@ -110,6 +134,7 @@ public class MainActivity extends Activity {
         mSocket.on(SERVER_SEND_MESSAGE, onListenServer_SendMessage);
         mSocket.on(SERVER_SEND_REQUEST_ADD_FRIEND, onListen_AddFriend);
         mSocket.on(SERVER_SEND_NEW_FRIEND, onListen_NewFriend);
+        mSocket.on(SERVER_UNFRIEND_SUCCESS, onListen_UnfriendSuccess);
     }
 
     //TO DO: add events
@@ -207,7 +232,6 @@ public class MainActivity extends Activity {
         searchTool = findViewById(R.id.searchTool);
         imgAddFriend = findViewById(R.id.imgAddFriend);
         imgMe = findViewById(R.id.imgMe);
-        //imgMe.setImageBitmap(Me.getInstance().getAvatar());
         txtNumRequest = findViewById(R.id.numRequestAddFriend);
     }
 
@@ -220,62 +244,14 @@ public class MainActivity extends Activity {
     }
 
 
- /*   private Emitter.Listener onListen_Conversations = new Emitter.Listener() {
-        @Override
-        public void call(final Object... args) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    JSONObject data = (JSONObject) args[0];
-                    JSONArray array;
-                    try {
-                        array = data.getJSONArray(SERVER_SEND_CONVERSATIONS);
-                        if (array != null) {
-                            for(int i = 0; i < array.length(); i++){
-                                for(int j = 0; j < listFriends.size(); j++){
-                                    if (listFriends.get(j).getEmail().equals(array.getString(i))){
-                                        listConversations.add(listFriends.get(j));
-                                    }
-                                }
-                            }
+    private Bitmap getBitmapFromString(String stringPicture) {
+        if(stringPicture=="")
+            return null;
+        byte[] decodedString = Base64.decode(stringPicture, Base64.DEFAULT);
+        Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
 
-                            adapterConversations.notifyDataSetChanged();
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-        }
-    };*/
-
-/*    private Emitter.Listener onListen_Friends = new Emitter.Listener() {
-        @Override
-        public void call(final Object... args) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    JSONObject data = (JSONObject) args[0];
-                    JSONArray array;
-                    try {
-                        array = data.getJSONArray(SERVER_SEND_FRIENDS);
-                        if (array != null){
-                            for(int i = 0; i < array.length(); i++){
-                                JSONObject obj = array.getJSONObject(i);
-                                listFriends.add(new Friend( obj.getString("email"),
-                                                            obj.getString("name"),
-                                                            BitmapFactory.decodeResource(getResources(), R.drawable.person),
-                                                            obj.getString("state")=="online" ? true:false));
-                            }
-                        }
-                        adapterFriends.notifyDataSetChanged();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-        }
-    };*/
+        return decodedByte;
+    }
 
 
     private Emitter.Listener onListen_NewConversation = new Emitter.Listener() {
@@ -473,11 +449,12 @@ public class MainActivity extends Activity {
                 @Override
                 public void run() {
                     JSONObject data = (JSONObject) args[0];
+
                     try {
                         if (!Me.getInstance().listEUserRequest.contains(data.getString(SERVER_SEND_REQUEST_ADD_FRIEND))){
                             Me.getInstance().listEUserRequest.add(data.getString(SERVER_SEND_REQUEST_ADD_FRIEND));
-                            txtNumRequest.setText(String.valueOf(Me.getInstance().listEUserRequest.size()));
                         }
+                        txtNumRequest.setText(String.valueOf(Me.getInstance().listEUserRequest.size()));
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -493,28 +470,43 @@ public class MainActivity extends Activity {
                 @Override
                 public void run() {
                     JSONObject data = (JSONObject) args[0];
-//                    try {
-//
-//                        Friend fr =  new Friend( data.getString("EMAIL"),
-//                                data.getString("NAME"),
-//                                BitmapFactory.decodeFile("drawable://" + R.drawable.person),
-//                                (data.getString("STATE").equals("online")) ? true:false);
-//
-//                        if (!ListFriends.getInstance().getArray().contains(fr)) {
-//                            ListFriends.getInstance().add(fr);
-//                        }
+                    try {
+                        Friend fr =  new Friend(
+                                data.getString("EMAIL"),
+                                data.getString("NAME"),
+                                data.getString("PHONE"));
+                        MemoryManager.getInstance().addBitmapToMemoryCache(fr.getEmail(), getBitmapFromString(data.getString("AVATAR")));
+                        fr.setOnline((data.getString("STATE").equals("online")) ? true:false);
 
+                        ListFriends.getInstance().add(fr);
+                        Toast.makeText(getApplicationContext(), fr.getName() + " add with you", Toast.LENGTH_SHORT).show();
 
-//                        if (Me.getInstance().listEUserRequest.size() != 0) {
-//                            txtNumRequest.setText(String.valueOf(Me.getInstance().listEUserRequest.size()));
-//                        } else {
-//                            txtNumRequest.setText("");
-//                        }
-//                    } catch (JSONException e) {
-//                        e.printStackTrace();
-//                    }
+                        if (Me.getInstance().listEUserRequest.size() != 0) {
+                            txtNumRequest.setText(String.valueOf(Me.getInstance().listEUserRequest.size()));
+                        } else {
+                            txtNumRequest.setText("");
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
 
                     adapterFriends.notifyDataSetChanged();
+                }
+            });
+        }
+    };
+
+    Emitter.Listener onListen_UnfriendSuccess = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    String data =  args[0].toString();
+
+                    if (data.equals("true")){
+                        Toast.makeText(getApplicationContext(), "Someone unfriend with you", Toast.LENGTH_SHORT).show();
+                    }
                 }
             });
         }

@@ -2,13 +2,18 @@ package com.example.remembergroup.adapter;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
+import android.text.Layout;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -18,7 +23,11 @@ import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
+import com.example.remembergroup.chat_app.ChatActivity;
+import com.example.remembergroup.chat_app.MainActivity;
+import com.example.remembergroup.chat_app.MemoryManager;
 import com.example.remembergroup.chat_app.R;
+import com.example.remembergroup.chat_app.SingletonSocket;
 import com.example.remembergroup.model.Conversation;
 import com.example.remembergroup.model.Friend;
 
@@ -31,6 +40,8 @@ import java.util.List;
  */
 
 public class ConversationAdapter extends ArrayAdapter<Conversation>  {
+    private final String CLIENT_REMOVE_CONVERSATION = "CLIENT_REMOVE_CONVERSATION";
+
     @NonNull
     private Activity context;
     @LayoutRes
@@ -63,13 +74,13 @@ public class ConversationAdapter extends ArrayAdapter<Conversation>  {
         ImageView imgImage=row.findViewById(R.id.imgImage);
         Button btnMenu=row.findViewById(R.id.btnMenu);
 
-        Conversation con=filterData.get(position);
+        final Conversation con=filterData.get(position);
 
         //set values to each controls
         txtName.setText(con.getFriend().getName());
 
-        if(con.getFriend().getAvatar()!=null)
-            imgImage.setImageBitmap(con.getFriend().getAvatar());
+        if(MemoryManager.getInstance().getBitmapFromMemCache(con.getFriend().getEmail())!=null)
+            imgImage.setImageBitmap(MemoryManager.getInstance().getBitmapFromMemCache(con.getFriend().getEmail()));
         if(con.getFriend().isOnline())
             imgOnline.setVisibility(View.VISIBLE);
         else
@@ -81,19 +92,48 @@ public class ConversationAdapter extends ArrayAdapter<Conversation>  {
         btnMenu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                handleMenuClick(view);
+                handleMenuClick(view, con);
             }
         });
 
         return row;
     }
 
-    private void handleMenuClick(View view) {
+    private void handleMenuClick(View view, final Conversation con) {
         PopupMenu popupMenu=new PopupMenu(this.context,view);
         MenuInflater inflater=popupMenu.getMenuInflater();
         inflater.inflate(R.menu.popup_menu,popupMenu.getMenu());
         popupMenu.show();
+
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem menuItem) {
+                if (menuItem.getItemId() == R.id.mnuChat){
+                    launchChatRoom("CON_CHAT", con, true);
+                    return true;
+                }
+
+                if (menuItem.getItemId() == R.id.mnuDelete) {
+                    SingletonSocket.getInstance().mSocket.emit(CLIENT_REMOVE_CONVERSATION, con.getId());
+                    objects.remove(con);
+                    notifyDataSetChanged();
+                    return true;
+                }
+
+                return false;
+            }
+        });
     }
+
+    // Launch chatRoom activity
+    private void launchChatRoom(String key, Conversation cons, boolean isExist){
+        Intent i = new Intent(context, ChatActivity.class);
+        i.putExtra(key, cons);
+        i.putExtra("isExist", isExist);
+        context.startActivity(i);
+    }
+
+
 
 
     @Override

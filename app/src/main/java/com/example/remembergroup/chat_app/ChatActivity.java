@@ -170,17 +170,14 @@ public class ChatActivity extends Activity {
     }
 
     private void initMine() {
-        Bitmap avatar = BitmapFactory.decodeResource(this.getResources(),
-                R.drawable.person2);
-
-        me = new IUser(Me.getInstance().getEmail(), Me.getInstance().getName(),avatar);
+        me = new IUser(Me.getInstance().getEmail(), Me.getInstance().getName(), MemoryManager.getInstance().getBitmapFromMemCache(Me.getInstance().getEmail()));
     }
 
     private void initFriend() {
         if (conversation != null) {
-            Bitmap avatar = BitmapFactory.decodeResource(this.getResources(),
-                    R.drawable.person1);
-            friend = new IUser(conversation.getFriend().getEmail(), conversation.getFriend().getName(), avatar);
+            friend = new IUser(conversation.getFriend().getEmail(),
+                    conversation.getFriend().getName(),
+                    MemoryManager.getInstance().getBitmapFromMemCache(conversation.getFriend().getEmail()));
 
             txtFriendName.setText(conversation.getFriend().getName());
 
@@ -641,6 +638,7 @@ public class ChatActivity extends Activity {
     public void onBackPressed() {
         super.onBackPressed();
         Intent i = new Intent(this, MainActivity.class);
+        i.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(i);
         this.finish();
     }

@@ -17,6 +17,7 @@ import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.remembergroup.chat_app.MemoryManager;
 import com.example.remembergroup.chat_app.R;
 import com.example.remembergroup.chat_app.SingletonSocket;
 import com.example.remembergroup.model.User;
@@ -68,8 +69,8 @@ public class UserAdapter extends ArrayAdapter<User> {
         //set values to each controls
         txtName.setText(user.getName());
 
-        if(user.getAvatar()!=null)
-            imgAvatar.setImageBitmap(user.getAvatar());
+        if(MemoryManager.getInstance().getBitmapFromMemCache(user.getEmail())!=null)
+            imgAvatar.setImageBitmap(MemoryManager.getInstance().getBitmapFromMemCache(user.getEmail()));
 
         //add events
         btnAddF.setOnClickListener(new View.OnClickListener() {

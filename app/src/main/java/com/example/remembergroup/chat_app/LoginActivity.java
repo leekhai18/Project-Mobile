@@ -1,10 +1,13 @@
 package com.example.remembergroup.chat_app;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
@@ -33,7 +36,7 @@ public class LoginActivity extends AppCompatActivity  {
     private final String CLIENT_LOGIN = "CLIENT_LOGIN";
     private final String CLIENT_REQUEST_DATA = "CLIENT_REQUEST_DATA";
 
-
+    private boolean flagForceOff;
     private Socket mSocket;
     private ProgressDialog pDialog;
     EditText txtEmail,txtPassword;
@@ -63,8 +66,11 @@ public class LoginActivity extends AppCompatActivity  {
         initSocket();
     }
 
+
+
     private void initSocket() {
         mSocket = SingletonSocket.getInstance().mSocket;
+
         mSocket.on(SERVER_RE_LOGIN, onLogin);
         SingletonSocket.getInstance().ListeningToGetData();
 
@@ -75,6 +81,7 @@ public class LoginActivity extends AppCompatActivity  {
     }
 
     private void addControls() {
+        flagForceOff = false;
 
         txtEmail= (EditText) findViewById(R.id.txtEmail);
         txtPassword= (EditText) findViewById(R.id.txtPassword);
@@ -91,17 +98,17 @@ public class LoginActivity extends AppCompatActivity  {
         btnLoginFB.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
-                Toast.makeText(LoginActivity.this,"Login sucess",Toast.LENGTH_LONG).show();
+                Toast.makeText(LoginActivity.this,"Login sucess",Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onCancel() {
-                Toast.makeText(LoginActivity.this,"Login cancel",Toast.LENGTH_LONG).show();
+                Toast.makeText(LoginActivity.this,"Login cancel",Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onError(FacebookException error) {
-                Toast.makeText(LoginActivity.this,"Login failed",Toast.LENGTH_LONG).show();
+                Toast.makeText(LoginActivity.this,"Login failed",Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -118,7 +125,7 @@ public class LoginActivity extends AppCompatActivity  {
                     checkLogin(email, password);
                 } else {
                     // Prompt user to enter credentials
-                    Toast.makeText(getApplicationContext(), "Please enter the credentials!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Please enter the credentials!", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -162,6 +169,24 @@ public class LoginActivity extends AppCompatActivity  {
             pDialog.show();
     }
 
+    private void hideDialog() {
+        if (pDialog.isShowing() && !LoginActivity.this.isFinishing()) {
+            pDialog.dismiss();
+            pDialog.cancel();
+        }
+    }
+
+    private void writeAccount() {
+        //set activity_executed inside insert() method.
+        SharedPreferences pref = getSharedPreferences("ACCOUNT", Context.MODE_PRIVATE);
+        SharedPreferences.Editor edt = pref.edit();
+
+        edt.putString("email", Me.getInstance().getEmail());
+        edt.putString("password", txtPassword.getText().toString().trim());
+
+        edt.commit();
+    }
+
     private Emitter.Listener onLogin = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
@@ -170,21 +195,34 @@ public class LoginActivity extends AppCompatActivity  {
                 public void run() {
                     String data =  args[0].toString();
 
-                    if(data == "true"){
+                    if(data.equals("true")){
                         mSocket.emit(CLIENT_REQUEST_DATA, "please send to me my data");
 
                         Intent intent = new Intent(LoginActivity.this,
                                 MainActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 
                         while(true){
-                            if(!Me.getInstance().getEmail().equals("")){
+                            if(!Me.getInstance().getEmail().equals("") || flagForceOff){
+                                hideDialog();
+                                writeAccount();
                                 startActivity(intent);
                                 finish();
                                 break;
                             }
                         }
+
+                        Handler handler = new Handler();
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                flagForceOff = true;
+                                Toast.makeText(getApplicationContext(), "Login failed", Toast.LENGTH_SHORT).show();
+                            }
+                        }, 4000);
+
                     }else{
-                        Toast.makeText(getApplicationContext(), "Email or password is wrong", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), "Email or password is wrong", Toast.LENGTH_SHORT).show();
                     }
                 }
             });

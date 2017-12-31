@@ -21,6 +21,7 @@ import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
+import com.example.remembergroup.chat_app.MemoryManager;
 import com.example.remembergroup.chat_app.R;
 import com.example.remembergroup.chat_app.SingletonSocket;
 import com.example.remembergroup.model.Conversation;
@@ -90,8 +91,8 @@ public class RequestAddFriendAdapter extends ArrayAdapter<User> {
         //set values to each controls
         txtName.setText(user.getName());
 
-        if(user.getAvatar()!=null)
-            imgAvatar.setImageBitmap(user.getAvatar());
+        if(MemoryManager.getInstance().getBitmapFromMemCache(user.getEmail())!=null)
+            imgAvatar.setImageBitmap(MemoryManager.getInstance().getBitmapFromMemCache(user.getEmail()));
 
         //add events
         imgAccept.setOnClickListener(new View.OnClickListener() {

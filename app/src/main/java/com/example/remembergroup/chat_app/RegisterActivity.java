@@ -3,12 +3,22 @@ package com.example.remembergroup.chat_app;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.support.v7.app.AlertDialog;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -29,7 +39,9 @@ public class RegisterActivity extends Activity {
     private EditText inputEmail;
     private EditText inputPassword;
     private EditText inputPhoneNumber;
-    private ProgressDialog pDialog;
+    private ImageView imgAvatar;
+    private Button btnChooseAvatar;
+    private AlertDialog.Builder dialog;
 
     private Socket mSocket;
 
@@ -46,10 +58,10 @@ public class RegisterActivity extends Activity {
         inputPhoneNumber = (EditText) findViewById(R.id.phoneNumber);
         btnRegister = (Button) findViewById(R.id.btnRegister);
         btnLinkToLogin = (Button) findViewById(R.id.btnLinkToLoginScreen);
+        imgAvatar = findViewById(R.id.imgAvatar);
+        btnChooseAvatar = findViewById(R.id.btnChooseAvatar);
 
-        // Progress dialog
-        pDialog = new ProgressDialog(this);
-        pDialog.setCancelable(false);
+        dialog = new AlertDialog.Builder(this);
 
         // Listening
         mSocket.on(SERVER_RE_REGISTER, onRegister);
@@ -69,6 +81,13 @@ public class RegisterActivity extends Activity {
                 launchLogin();
             }
         });
+
+        btnChooseAvatar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                openGallery();
+            }
+        });
     }
 
     @Override
@@ -79,15 +98,30 @@ public class RegisterActivity extends Activity {
         this.finish();
     }
 
+    private String getStringFromBitmap(Bitmap bitmapPicture) {
+        if(bitmapPicture==null)
+            return "";
+        final int COMPRESSION_QUALITY = 100;
+        String encodedImage;
+        ByteArrayOutputStream byteArrayBitmapStream = new ByteArrayOutputStream();
+        bitmapPicture.compress(Bitmap.CompressFormat.PNG, COMPRESSION_QUALITY,
+                byteArrayBitmapStream);
+        byte[] b = byteArrayBitmapStream.toByteArray();
+        encodedImage = Base64.encodeToString(b, Base64.DEFAULT);
+
+        return encodedImage;
+    }
+
     private void sendInfoRegister() {
         String username = inputFullName.getText().toString().trim();
         String email = inputEmail.getText().toString().trim();
         String password = inputPassword.getText().toString().trim();
         String phoneNumber = inputPhoneNumber.getText().toString().trim();
+        String avatarBitmapString = getStringFromBitmap(((BitmapDrawable) imgAvatar.getDrawable()).getBitmap());
 
         boolean checkInfo = checkInputInfoUser(username, email, password, phoneNumber);
         if (checkInfo == true) {
-            mSocket.emit(CLIENT_REGISTER, username, password, email, phoneNumber);
+            mSocket.emit(CLIENT_REGISTER, username, password, email, phoneNumber, avatarBitmapString);
         } else {
             Toast.makeText(getApplicationContext(), "Please enter your details!", Toast.LENGTH_SHORT).show();
         }
@@ -101,18 +135,6 @@ public class RegisterActivity extends Activity {
         return false;
     }
 
-    private void showDialog() {
-        if (!pDialog.isShowing())
-            pDialog.show();
-    }
-
-    private void hideDialog() {
-        if (pDialog.isShowing()) {
-            pDialog.dismiss();
-            pDialog.cancel();
-        }
-    }
-
     // Launch login activity
     private void launchLogin(){
         Intent i = new Intent(getApplicationContext(),
@@ -120,6 +142,33 @@ public class RegisterActivity extends Activity {
         startActivity(i);
         finish();
     }
+
+    private final int PICK_IMAGE_REQUEST = 2;
+    private void openGallery() {
+        Intent intent = new Intent();
+        // Show only images, no videos or anything else
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        // Always show the chooser (if there are multiple options available)
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            Uri uri = data.getData();
+            try {
+                Bitmap imageBitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+                imgAvatar.setImageBitmap(imageBitmap);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 
     private Emitter.Listener onCheckExistence = new Emitter.Listener() {
         @Override
@@ -132,18 +181,18 @@ public class RegisterActivity extends Activity {
                     if (data == "true") {
                         Toast.makeText(getApplicationContext(), "Email has existed!", Toast.LENGTH_SHORT).show();
                     } else {
-                        pDialog.setMessage("Registering...");
-                        showDialog();
+                        dialog.setMessage("Registering...");
+
+                        if(!RegisterActivity.this.isFinishing())
+                        {
+                            dialog.show();
+                        }
                     }
                 }
             });
         }
     };
 
-    /**
-     * Function to store user in MySQL database will post params(tag, name,
-     * email, password) to activity_register url
-     */
 
 
     private Emitter.Listener onRegister = new Emitter.Listener() {
@@ -155,11 +204,9 @@ public class RegisterActivity extends Activity {
                     String data = args[0].toString();
 
                     if (data == "true") {
+                        Toast.makeText(getApplicationContext(), "Registered successfully", Toast.LENGTH_SHORT).show();
                         launchLogin();
-                    } else {
-                        Log.d("error", "can't activity_register");
                     }
-                    hideDialog();
                 }
             });
         }

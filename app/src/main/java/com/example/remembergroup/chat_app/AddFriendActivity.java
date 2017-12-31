@@ -84,10 +84,14 @@ public class AddFriendActivity extends Activity {
         super.onBackPressed();
 
         listUserNotFriend.clear();
+        listUserNotFriend.removeAll(listUserNotFriend);
         listUserNFToQR.clear();
+        listUserNFToQR.removeAll(listUserNFToQR);
         listUserRequest.clear();
+        listUserRequest.removeAll(listUserRequest);
 
         Intent i = new Intent(this, MainActivity.class);
+        i.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(i);
         this.finish();
     }
@@ -182,9 +186,11 @@ public class AddFriendActivity extends Activity {
                         if (arrayUser != null){
                             for(int i = 0; i < arrayUser.length(); i++) {
                                 JSONObject obj = (JSONObject) arrayUser.get(i);
-                                //Bitmap avatar = getBitmapFromString(obj.getString("AVATAR"));
 
-                                listUserNotFriend.add(new User(obj.getString("EMAIL"), obj.getString("NAME"), BitmapFactory.decodeResource(getResources(), R.drawable.person2)));
+                                User temp = new User(obj.getString("EMAIL"), obj.getString("NAME"));
+                                MemoryManager.getInstance().addBitmapToMemoryCache(temp.getEmail(), getBitmapFromString(obj.getString("AVATAR")));
+
+                                listUserNotFriend.add(temp);
                                 listUserNFToQR.add(listUserNotFriend.get(i));
 
                                 for(int j = 0; j < Me.getInstance().listEUserRequest.size(); j++){
@@ -219,9 +225,9 @@ public class AddFriendActivity extends Activity {
 
                         for(int i = 0; i < listUserNFToQR.size(); i++){
                             if (listUserNFToQR.get(i).getEmail().equals(email)){
-                                if (!Me.getInstance().listEUserRequest.contains(email)) {
-                                    Me.getInstance().listEUserRequest.add(email);
-                                }
+//                                if (!Me.getInstance().listEUserRequest.contains(email)) {
+//                                    Me.getInstance().listEUserRequest.add(email);
+//                                }
 
                                 if (!listUserRequest.contains(listUserNFToQR.get(i))) {
                                     listUserRequest.add(listUserNFToQR.get(i));
@@ -247,14 +253,14 @@ public class AddFriendActivity extends Activity {
                 public void run() {
                     JSONObject data = (JSONObject) args[0];
                     try {
-                        Friend fr =  new Friend( data.getString("EMAIL"),
+                        Friend fr =  new Friend(
+                                data.getString("EMAIL"),
                                 data.getString("NAME"),
-                                BitmapFactory.decodeFile("drawable://" + R.drawable.person),
-                                (data.getString("STATE").equals("online")) ? true:false);
+                                data.getString("PHONE"));
+                        MemoryManager.getInstance().addBitmapToMemoryCache(fr.getEmail(), getBitmapFromString(data.getString("AVATAR")));
+                        fr.setOnline((data.getString("STATE").equals("online")) ? true:false);
 
-                        if (!ListFriends.getInstance().getArray().contains(fr)) {
-                            ListFriends.getInstance().add(fr);
-                        }
+                        //ListFriends.getInstance().add(fr);
 
                         listUserNotFriend.remove(Me.getInstance().accepted);
                         userAdapter.notifyDataSetChanged();

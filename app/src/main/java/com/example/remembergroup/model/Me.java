@@ -28,16 +28,12 @@ public class Me extends User {
         super(name);
     }
 
-    public Me(String name, Bitmap avatar) {
-        super(name, avatar);
+    public Me(String email, String name){
+        super(email, name);
     }
 
-    public Me(String email, String name, Bitmap avatar){
-        super(email, name, avatar);
-    }
-
-    public Me(String email, String name, Bitmap avatar, String phoneNum){
-        super(email, name, avatar, phoneNum);
+    public Me(String email, String name, String phoneNum){
+        super(email, name, phoneNum);
     }
 
     @Override
@@ -49,7 +45,6 @@ public class Me extends User {
     public void writeToParcel(Parcel parcel, int i) {
         parcel.writeString(this.email);
         parcel.writeString(this.name);
-        parcel.writeValue(this.avatar);
         parcel.writeString(this.phoneNumber);
     }
 
@@ -66,7 +61,6 @@ public class Me extends User {
     private Me(Parcel in) {
         this.email = in.readString();
         this.name = in.readString();
-        this.avatar = (Bitmap) in.readValue(ClassLoader.getSystemClassLoader());
         this.phoneNumber = in.readString();
     }
 }

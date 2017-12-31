@@ -1,7 +1,9 @@
 package com.example.remembergroup.chat_app;
 
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.text.format.DateFormat;
+import android.util.Base64;
 import android.util.Log;
 
 import com.example.remembergroup.adapter.RequestAddFriendAdapter;
@@ -38,16 +40,19 @@ public class SingletonSocket {
     private final String SERVER_SEND_CONVERSATIONS = "SERVER_SEND_CONVERSATIONS";
     private final String SERVER_SEND_FRIENDS = "SERVER_SEND_FRIENDS";
     private final String SERVER_SEND_REQUEST_ADD_FRIEND = "SERVER_SEND_REQUEST_ADD_FRIEND";
-    private  final String MEM_ROOM = "MEM_ROOM";
+    private  final String PHONE = "PHONE";
     private  final String SERVER_SEND_DATA_ME = "SERVER_SEND_DATA_ME";
     private  final String NAME = "NAME";
     private  final String EMAIL = "EMAIL";
-    private  final String AVARTAR = "AVARTAR";
+    private  final String AVATAR = "AVATAR";
     private  final String STATE = "STATE";
     private  final String ID = "ID";
 
     // instance
     private static SingletonSocket INSTANCE = new SingletonSocket();
+
+    boolean wasListenFriend = false;
+    boolean wasListenConversation = false;
 
     public Socket mSocket;
 
@@ -70,11 +75,19 @@ public class SingletonSocket {
         mSocket.on(SERVER_SEND_DATA_ME, onListen_MyData);
         mSocket.on(SERVER_SEND_CONVERSATIONS, onListen_Conversations);
         mSocket.on(SERVER_SEND_FRIENDS, onListen_Friends);
-
     }
 
     public void ListeningRequest() {
         mSocket.on(SERVER_SEND_REQUEST_ADD_FRIEND, onListen_AddFriend);
+    }
+
+    private Bitmap getBitmapFromString(String stringPicture) {
+        if(stringPicture=="")
+            return null;
+        byte[] decodedString = Base64.decode(stringPicture, Base64.DEFAULT);
+        Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+
+        return decodedByte;
     }
 
     private Emitter.Listener onListen_MyData = new Emitter.Listener() {
@@ -85,7 +98,8 @@ public class SingletonSocket {
             try {
                 Me.getInstance().setEmail(data.getString(EMAIL));
                 Me.getInstance().setName(data.getString(NAME));
-                // Need add avatar in here
+                Me.getInstance().setPhoneNumber(data.getString(PHONE));
+                MemoryManager.getInstance().addBitmapToMemoryCache(Me.getInstance().getEmail(), getBitmapFromString(data.getString(AVATAR)));
 
                 arrayRequest = data.getJSONArray(SERVER_SEND_REQUEST_ADD_FRIEND);
                 for (int i = 1; i < arrayRequest.length(); i++){
@@ -101,25 +115,29 @@ public class SingletonSocket {
     private Emitter.Listener onListen_Friends = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
-            JSONObject data = (JSONObject) args[0];
-            JSONArray array;
-            try {
-                array = data.getJSONArray(SERVER_SEND_FRIENDS);
-                if (array != null){
-                    for(int i = 0; i < array.length(); i++){
-                        JSONObject obj = array.getJSONObject(i);
-                        Friend fr =  new Friend( obj.getString("EMAIL"),
-                                obj.getString("NAME"),
-                                BitmapFactory.decodeFile("drawable://" + R.drawable.person),
-                                (obj.getString("STATE").equals("online")) ? true:false);
+            if (!wasListenFriend){
+                JSONObject data = (JSONObject) args[0];
+                JSONArray array;
+                try {
+                    array = data.getJSONArray(SERVER_SEND_FRIENDS);
+                    if (array != null){
+                        for(int i = 0; i < array.length(); i++){
+                            JSONObject obj = array.getJSONObject(i);
+                            Friend fr =  new Friend(
+                                    obj.getString(EMAIL),
+                                    obj.getString(NAME),
+                                    obj.getString(PHONE));
+                            MemoryManager.getInstance().addBitmapToMemoryCache(fr.getEmail(), getBitmapFromString(obj.getString(AVATAR)));
+                            fr.setOnline((obj.getString(STATE).equals("online")) ? true:false);
 
-                        if (!ListFriends.getInstance().getArray().contains(fr)) {
                             ListFriends.getInstance().add(fr);
                         }
                     }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
+
+                wasListenFriend = true;
             }
         }
     };
@@ -127,44 +145,48 @@ public class SingletonSocket {
     private Emitter.Listener onListen_Conversations = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
-            JSONObject data = (JSONObject) args[0];
-            JSONArray array;
-            try {
-                array = data.getJSONArray(SERVER_SEND_CONVERSATIONS);
-                if (array != null) {
-                    for(int i = 0; i < array.length(); i++){
-                        JSONObject obj = array.getJSONObject(i);
-                        JSONObject latest = obj.getJSONObject("LATESTMESSAGE");
 
-                        Gson gson = new Gson();
-                        Calendar createdAt = gson.fromJson(latest.getString("time"), Calendar.class);
-                        DateFormat formater = new DateFormat();
-                        String timeString = formater.format("dd/MM hh:mm", createdAt).toString();
+            if (!wasListenConversation){
+                JSONObject data = (JSONObject) args[0];
+                JSONArray array;
+                try {
+                    array = data.getJSONArray(SERVER_SEND_CONVERSATIONS);
+                    if (array != null) {
+                        for(int i = 0; i < array.length(); i++){
+                            JSONObject obj = array.getJSONObject(i);
+                            JSONObject latest = obj.getJSONObject("LATESTMESSAGE");
 
-                        for(int j = 0; j < ListFriends.getInstance().getArray().size(); j++){
-                            if (ListFriends.getInstance().getArray().get(j).getEmail().equals(obj.getString(EMAIL))){
-                                if (latest.getString("type").equals("TEXT")){
-                                    ListConversations.getInstance()
-                                            .add(new Conversation(obj.getString(ID),ListFriends.getInstance().getArray().get(j),
-                                                    latest.getString("message"), timeString,
-                                                    latest.getString("sender").equals(Me.getInstance().getEmail()) ? 1:0));
-                                }
-                                if (latest.getString("type").equals("PICTURE")){
-                                    ListConversations.getInstance()
-                                            .add(new Conversation(obj.getString(ID),ListFriends.getInstance().getArray().get(j),
-                                                    "picture...", timeString,
-                                                    latest.getString("sender").equals(Me.getInstance().getEmail()) ? 1:0));
+                            Gson gson = new Gson();
+                            Calendar createdAt = gson.fromJson(latest.getString("time"), Calendar.class);
+                            DateFormat formater = new DateFormat();
+                            String timeString = formater.format("dd/MM hh:mm", createdAt).toString();
+
+                            for(int j = 0; j < ListFriends.getInstance().getArray().size(); j++){
+                                if (ListFriends.getInstance().getArray().get(j).getEmail().equals(obj.getString(EMAIL))){
+                                    if (latest.getString("type").equals("TEXT")){
+                                        ListConversations.getInstance()
+                                                .add(new Conversation(obj.getString(ID),ListFriends.getInstance().getArray().get(j),
+                                                        latest.getString("message"), timeString,
+                                                        latest.getString("sender").equals(Me.getInstance().getEmail()) ? 1:0));
+                                    }
+                                    if (latest.getString("type").equals("PICTURE")){
+                                        ListConversations.getInstance()
+                                                .add(new Conversation(obj.getString(ID),ListFriends.getInstance().getArray().get(j),
+                                                        "picture...", timeString,
+                                                        latest.getString("sender").equals(Me.getInstance().getEmail()) ? 1:0));
+                                    }
                                 }
                             }
                         }
                     }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
+
+                wasListenConversation = true;
             }
         }
     };
-
 
     private Emitter.Listener onListen_AddFriend = new Emitter.Listener() {
         @Override

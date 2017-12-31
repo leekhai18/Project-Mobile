@@ -9,54 +9,44 @@
     <ImageView
         android:layout_width="128dp"
         android:layout_height="128dp"
+        android:layout_marginTop="5dp"
         android:src="@drawable/person1"
         android:layout_gravity="center"
+        android:id="@+id/imgAvatar"
         />
 
     <TextView
         android:id="@+id/txtName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="0.5"
         android:layout_marginTop="10dp"
         android:textAlignment="center"
         android:text="Le Tuan Khai"
         android:textSize="25dp"
         android:textStyle="bold"/>
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/txtEmail"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="horizontal">
-        <ImageView
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@drawable/username"
-            />
-        <TextView
-            android:text="Email"
-            android:layout_width="50dp"
-            android:layout_height="match_parent"
-            android:layout_marginTop="17dp"
-            android:textSize="15dp"/>
-        <TextView
-            android:id="@+id/txtEmail"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="leekhai18@gmail.com"
-            android:textSize="20dp"
-            android:layout_margin="13dp"/>
-    </LinearLayout>
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:textAlignment="center"
+        android:text="leekhai18@gmail.com"
+        android:textSize="20dp"
+        android:textColor="@color/gray300"
+        android:textStyle="bold"/>
 
     <LinearLayout
         android:layout_weight="1"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
         android:orientation="horizontal">
         <ImageView
             android:layout_width="32dp"
             android:layout_height="32dp"
+            android:layout_marginTop="5dp"
             android:src="@drawable/phone"/>
 
         <TextView
@@ -64,6 +54,7 @@
             android:layout_width="50dp"
             android:layout_height="match_parent"
             android:layout_marginTop="17dp"
+            android:layout_marginLeft="5dp"
             android:textSize="15dp"/>
         <TextView
             android:id="@+id/txtPhoneNumber"
@@ -71,14 +62,39 @@
             android:layout_height="match_parent"
             android:text="01628372204"
             android:textSize="20dp"
-            android:layout_margin="13dp"/>
+            android:layout_margin="13dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:id="@+id/changePassword">
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="46dp"
+            android:src="@drawable/com_facebook_tooltip_black_background"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Change password"
+            android:textSize="25dp"
+            android:layout_margin="5dp"/>
+
     </LinearLayout>
 
     <LinearLayout
         android:layout_weight="1"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:id="@+id/switchAccount">
 
         <ImageView
             android:layout_width="32dp"
@@ -86,10 +102,9 @@
             android:src="@drawable/power_switch_user" />
 
         <TextView
-            android:id="@+id/txtSwitch"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="Switch Account"
+            android:text="Switch account"
             android:textSize="25dp"
             android:layout_margin="5dp"/>
 
@@ -99,7 +114,10 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:id="@+id/aboutApp">
 
         <ImageView
             android:id="@+id/imageView2"
@@ -107,10 +125,9 @@
             android:layout_height="32dp"
             android:src="@drawable/info" />
         <TextView
-            android:id="@+id/txtAbout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="About chat closer"
+            android:text="About"
             android:textSize="25dp"
             android:layout_margin="5dp"/>
     </LinearLayout>

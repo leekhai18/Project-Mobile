@@ -40,7 +40,9 @@ public class ListConversations {   //
     public ArrayList<Conversation> getArray(){return array;}
 
     public void add(Conversation con){
-        array.add(con);
+        if (!array.contains(con)){
+            array.add(con);
+        }
     }
 
     public void remove(Conversation con){

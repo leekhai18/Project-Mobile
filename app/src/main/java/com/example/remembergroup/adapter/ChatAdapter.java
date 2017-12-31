@@ -17,6 +17,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.remembergroup.chat_app.MemoryManager;
 import com.example.remembergroup.chat_app.R;
 import com.example.remembergroup.model.Constant;
 import com.example.remembergroup.model.Friend;
@@ -112,7 +113,7 @@ public class ChatAdapter extends ArrayAdapter<Message> {
             holder.imgImage.setImageBitmap(imageMessage.getImage());
             @SuppressLint({"NewApi", "LocalSuppress", "SimpleDateFormat"})
             SimpleDateFormat format=new SimpleDateFormat("MMMM dd,yyyy");
-            holder.imgAvatar.setImageBitmap(Me.getInstance().getAvatar());
+            holder.imgAvatar.setImageBitmap(MemoryManager.getInstance().getBitmapFromMemCache(Me.getInstance().getEmail()));
         }
         else
         {
@@ -121,7 +122,7 @@ public class ChatAdapter extends ArrayAdapter<Message> {
             @SuppressLint({"NewApi", "LocalSuppress", "SimpleDateFormat"})
             SimpleDateFormat format=new SimpleDateFormat("MMMM dd,yyyy");
             holder.txtTime.setText(format.format(calendar.getTime()));
-            holder.imgAvatar.setImageBitmap(friend.getAvatar());
+            holder.imgAvatar.setImageBitmap(MemoryManager.getInstance().getBitmapFromMemCache(friend.getEmail()));
         }
     }
 
@@ -130,7 +131,7 @@ public class ChatAdapter extends ArrayAdapter<Message> {
         if(textMessage.isMine())
         {
             holder.txtMessage.setText(textMessage.getText());
-            holder.imgAvatar.setImageBitmap(Me.getInstance().getAvatar());
+            holder.imgAvatar.setImageBitmap(MemoryManager.getInstance().getBitmapFromMemCache(Me.getInstance().getEmail()));
         }
         else
         {
@@ -139,7 +140,7 @@ public class ChatAdapter extends ArrayAdapter<Message> {
             @SuppressLint({"NewApi", "LocalSuppress", "SimpleDateFormat"})
             SimpleDateFormat format=new SimpleDateFormat("MMMM dd,yyyy");
             holder.txtTime.setText(format.format(calendar.getTime()));
-            holder.imgAvatar.setImageBitmap(friend.getAvatar());
+            holder.imgAvatar.setImageBitmap(MemoryManager.getInstance().getBitmapFromMemCache(friend.getEmail()));
         }
 
     }

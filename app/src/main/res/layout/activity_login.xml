@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FF4081"
+    android:background="@color/khaibackgroud"
     android:orientation="vertical"
     android:weightSum="1"
     tools:context="com.example.remembergroup.chat_app.LoginActivity">
@@ -65,7 +65,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:background="@color/transparent"
-        android:textColor="@color/white"
         android:text="Not a member? Sign up now"
         android:textSize="11dp"
         android:alpha="0.5" />

@@ -26,17 +26,19 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
-        <activity android:name=".LoginActivity" android:launchMode="standard">
+        <activity android:name=".SplashActivity" android:launchMode="standard">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ProfileMeActivity" android:launchMode="singleTop"/>
-        <activity android:name=".ChatActivity" android:launchMode="standard"/>
+        <activity android:name=".LoginActivity"/>
+        <activity android:name=".ProfileFriendActivity" />
+        <activity android:name=".ProfileMeActivity" />
+        <activity android:name=".ChatActivity" />
         <activity android:name=".MainActivity" android:launchMode="singleTop" />
-        <activity android:name=".RegisterActivity" android:launchMode="standard"/>
-        <activity android:name=".AddFriendActivity" android:launchMode="standard"/>
+        <activity android:name=".RegisterActivity" />
+        <activity android:name=".AddFriendActivity" />
     </application>
 
 </manifest>

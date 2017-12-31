@@ -2,6 +2,7 @@ package com.example.remembergroup.adapter;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Build;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
@@ -18,7 +19,12 @@ import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
+import com.example.remembergroup.chat_app.ChatActivity;
+import com.example.remembergroup.chat_app.MemoryManager;
+import com.example.remembergroup.chat_app.ProfileFriendActivity;
+import com.example.remembergroup.chat_app.ProfileMeActivity;
 import com.example.remembergroup.chat_app.R;
+import com.example.remembergroup.model.Conversation;
 import com.example.remembergroup.model.Friend;
 
 import java.text.SimpleDateFormat;
@@ -57,18 +63,28 @@ public class FriendAdapter extends ArrayAdapter<Friend>  {
         TextView txtName=row.findViewById(R.id.txtName);
         ImageView imgOnline=row.findViewById(R.id.imgOnline);
         ImageView imgImage=row.findViewById(R.id.imgImage);
+        Button btnProfile = row.findViewById(R.id.btnProfile);
 
-        Friend friend=filterData.get(position);
+        final Friend friend=filterData.get(position);
 
         //set values to each controls
         txtName.setText(friend.getName());
 
-        if(friend.getAvatar()!=null)
-            imgImage.setImageBitmap(friend.getAvatar());
+        if(MemoryManager.getInstance().getBitmapFromMemCache(friend.getEmail())!=null)
+            imgImage.setImageBitmap(MemoryManager.getInstance().getBitmapFromMemCache(friend.getEmail()));
         if(friend.isOnline())
             imgOnline.setVisibility(View.VISIBLE);
         else
             imgOnline.setVisibility(View.INVISIBLE);
+
+        btnProfile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(context, ProfileFriendActivity.class);
+                i.putExtra("PROFILEFRIEND", friend);
+                context.startActivity(i);
+            }
+        });
 
         return row;
     }

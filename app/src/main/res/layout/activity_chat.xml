@@ -97,7 +97,7 @@
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:orientation="vertical"
-        android:background="#FF4081"
+        android:background="@color/green500"
         android:translationZ="10dp">
 
         <TextView
@@ -140,7 +140,7 @@
             android:layout_height="200dp"
             android:layout_gravity="bottom"
             android:layout_marginBottom="0dp"
-            android:background="#FF4081"
+            android:background="@color/green500"
             android:columnCount="3">
 
             <LinearLayout
